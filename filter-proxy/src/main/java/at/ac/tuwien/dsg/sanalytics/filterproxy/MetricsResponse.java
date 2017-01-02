@@ -44,7 +44,7 @@ public class MetricsResponse {
 	}
 	
 	private boolean hasSliceLabel(Metric m, String slice) {
-		return m.getLabelList().stream()
+		return slice == null || m.getLabelList().stream()
 				.anyMatch(l -> l.getName().equals(CONTAINER_LABEL_SANALYTICS_SLICE) && l.getValue().equals(slice));
 	}
 

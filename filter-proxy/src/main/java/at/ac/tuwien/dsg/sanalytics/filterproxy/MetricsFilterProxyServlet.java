@@ -124,6 +124,7 @@ public class MetricsFilterProxyServlet extends ProxyServlet {
 			throws ServletException, IOException {
 		System.out.println("version 15.12.2016 19:06");
 		List<InetAddress> addresses = getCAdvisorAdresses();
+		
 //		servletResponse.setCharacterEncoding("UTF-8");
 		try {
 			threadLocalMetricsCommentsSet.get().clear();

@@ -20,6 +20,28 @@
 			<version>4.12</version>
 			<scope>test</scope>
 		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.mockito/mockito-core -->
+		<dependency>
+		    <groupId>org.mockito</groupId>
+		    <artifactId>mockito-core</artifactId>
+		    <version>2.5.0</version>
+		    <scope>test</scope>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/com.github.tomakehurst/wiremock -->
+<!-- 		<dependency> -->
+<!-- 		    <groupId>com.github.tomakehurst</groupId> -->
+<!-- 		    <artifactId>wiremock</artifactId> -->
+<!-- 		    <version>2.4.1</version> -->
+<!-- 		</dependency> -->
+		<!-- https://mvnrepository.com/artifact/org.mock-server/mockserver-netty -->
+		<dependency>
+		    <groupId>org.mock-server</groupId>
+		    <artifactId>mockserver-netty</artifactId>
+		    <version>3.10.4</version>
+		    <scope>test</scope>
+		</dependency>
+				
+		
 
 		<!-- could be used for parsing the json that follows the metric name in 
 			the prometheus output http://www.devjavasource.com/java-8/how-to-read-json-object-using-java-8/ 
@@ -61,6 +83,11 @@
 			<artifactId>jetty-webapp</artifactId>
 			<version>8.1.7.v20120910</version>
 			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-lang3</artifactId>
+			<version>3.4</version>
 		</dependency>
 		
 <!-- 		<dependency> -->
