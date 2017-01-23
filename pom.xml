@@ -12,8 +12,47 @@
         <slf4j.version>1.7.5</slf4j.version>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
+        <spring.boot.starter.version>1.4.3.RELEASE</spring.boot.starter.version>
     </properties>
 	<modules>
 		<module>filter-proxy</module>
+		<module>sampleapps</module>
 	</modules>
+	
+	<dependencyManagement>
+		<dependencies>
+			<!-- https://mvnrepository.com/artifact/org.jrobin/jrobin -->
+			<dependency>
+				<groupId>org.jrobin</groupId>
+				<artifactId>jrobin</artifactId>
+				<version>1.5.9</version>
+			</dependency>
+			<!-- javamelody-core -->
+			<dependency>
+				<groupId>net.bull.javamelody</groupId>
+				<artifactId>javamelody-core</artifactId>
+				<version>1.62.0</version>
+			</dependency>
+	
+			<!-- https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-integration -->
+			<dependency>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-starter-integration</artifactId>
+				<version>${spring.boot.starter.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-starter-data-mongodb</artifactId>
+				<version>${spring.boot.starter.version}</version>
+			</dependency>
+	
+			<!-- https://mvnrepository.com/artifact/org.springframework.integration/spring-integration-mqtt -->
+			<dependency>
+				<groupId>org.springframework.integration</groupId>
+				<artifactId>spring-integration-mqtt</artifactId>
+				<version>4.3.4.RELEASE</version>
+			</dependency>
+	
+		</dependencies>
+	</dependencyManagement>
 </project>	

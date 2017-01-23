@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Optional;
 
 import javax.servlet.ServletException;
+import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -29,14 +30,14 @@ import io.prometheus.client.Metrics.MetricType;
 import io.prometheus.client.Metrics.Quantile;
 import io.prometheus.client.Metrics.Summary;
 
-public class MetricsServlet extends HttpServlet {
+public class MetricsSliceFilterServlet extends HttpServlet {
 
 	private static final String PROMETHEUS_PROTOBUF_ACCEPT_HEADER = "application/vnd.google.protobuf";
 
-	private final static class SliceFilter {
+	private final static class MetricsRequestFilter {
 		private String sliceName;
 
-		public SliceFilter(String sliceName) {
+		public MetricsRequestFilter(String sliceName) {
 			this.sliceName = sliceName;
 		}
 
@@ -83,32 +84,29 @@ public class MetricsServlet extends HttpServlet {
 		};
 	}
 	
-	private SliceFilter createSliceFilter(HttpServletRequest req) {
+	private MetricsRequestFilter createSliceFilter(HttpServletRequest req) {
 		//TODO make uri check better
 		String sliceName = null;
 		if(req.getRequestURI().startsWith("/metrics/") 
 				&& req.getRequestURI().length() > REQUEST_URI_METRICS_PATH_LENGTH) {
 			sliceName = req.getRequestURI().substring(REQUEST_URI_METRICS_PATH_LENGTH);
 		}
-		return new SliceFilter(sliceName);
+		return new MetricsRequestFilter(sliceName);
 	}
 
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-		SliceFilter sliceFilter = createSliceFilter(req);
+		MetricsRequestFilter sliceFilter = createSliceFilter(req);
 		
 		
 		MetricsResponse mr = dnsLookup.getAllAddresses("cadvisor")
 			.parallelStream()
 			.map(a -> sliceFilter.callMetricsEndpoint(a))
-			.reduce((a,b) -> a.mergeWith(b))
-			.get();
+			.reduce(MetricsResponse.createEmpty(), (a,b) -> a.mergeWith(b));
 		
 		if(shouldSendProtobufResponse(req)) {
 			resp.setContentType(PROMETHEUS_PROTOBUF_CONTENT_TYPE);
-			for(MetricFamily mf : mr.getMetricsFamilies().values()) {
-				mf.writeDelimitedTo(resp.getOutputStream());
-			}
+			mr.writeDelimitedTo(resp.getOutputStream());
 		} else {
 			resp.setContentType("text/plain; version=0.0.4");
 			PrintWriter wr = resp.getWriter();

@@ -24,7 +24,7 @@ public class Main {
 		webapp.setContextPath("/");
 		webapp.setWar(location.toExternalForm());
 //		webapp.addServlet("at.ac.tuwien.dsg.sanalytics.filterproxy.MetricsFilterProxyServlet", "/*");
-		webapp.addServlet("at.ac.tuwien.dsg.sanalytics.filterproxy.MetricsServlet", "/metrics/*");
+		webapp.addServlet("at.ac.tuwien.dsg.sanalytics.filterproxy.MetricsSliceFilterServlet", "/metrics/*");
 		server.setHandler(webapp);
 
 		server.start();

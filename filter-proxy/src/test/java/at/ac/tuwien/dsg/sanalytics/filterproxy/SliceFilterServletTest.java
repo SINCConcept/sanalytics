@@ -34,7 +34,7 @@ import static org.mockserver.model.HttpRequest.*;
 import static org.mockserver.model.HttpResponse.*;
 
 @RunWith(MockitoJUnitRunner.class)
-public class MetricsServletTest {
+public class SliceFilterServletTest {
 
 	@Mock
 	private HttpServletRequest req;
@@ -98,13 +98,13 @@ public class MetricsServletTest {
 		//verify
 		cadvisor1client.verify(request("/metrics"), VerificationTimes.exactly(1));
 		cadvisor2client.verify(request("/metrics"), VerificationTimes.exactly(1));
-		verify(resp).setContentType(MetricsServlet.PROMETHEUS_PROTOBUF_CONTENT_TYPE);
+		verify(resp).setContentType(MetricsSliceFilterServlet.PROMETHEUS_PROTOBUF_CONTENT_TYPE);
 		MetricsResponse response = new MetricsResponse(new ByteArrayInputStream(baos.toByteArray()), null);
 		return response;
 	}
 
-	private MetricsServlet createTestSubclassOfMetricsServlet() {
-		return new MetricsServlet() {
+	private MetricsSliceFilterServlet createTestSubclassOfMetricsServlet() {
+		return new MetricsSliceFilterServlet() {
 			private static final long serialVersionUID = 1L;
 
 			protected PrometheusMetricsEndpointLookup createMetricsEndpointLookup() {

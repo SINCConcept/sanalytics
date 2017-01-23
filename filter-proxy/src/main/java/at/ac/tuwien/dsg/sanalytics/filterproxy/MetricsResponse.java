@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import javax.servlet.ServletOutputStream;
+
 import io.prometheus.client.Metrics;
 import io.prometheus.client.Metrics.Metric;
 import io.prometheus.client.Metrics.MetricFamily;
@@ -14,12 +16,17 @@ import io.prometheus.client.Metrics.MetricFamily.Builder;
 
 public class MetricsResponse {
 
-	private HashMap<String, MetricFamily> mmap = new HashMap<>();
 	public static final String CONTAINER_LABEL_SANALYTICS_SLICE = "container_label_sanalytics_slice";
+	public static MetricsResponse createEmpty() {
+		return new MetricsResponse();
+	}
 
+	private HashMap<String, MetricFamily> mmap = new HashMap<>();
+	
 	private MetricsResponse() {
 		//empty
 	}
+	
 	
 	public MetricsResponse(InputStream input, String slice) {
 		MetricFamily mf;
@@ -43,14 +50,13 @@ public class MetricsResponse {
 		}
 	}
 	
+	Map<String, MetricFamily> getMetricsFamilies() {
+		return mmap;
+	}
+
 	private boolean hasSliceLabel(Metric m, String slice) {
 		return slice == null || m.getLabelList().stream()
 				.anyMatch(l -> l.getName().equals(CONTAINER_LABEL_SANALYTICS_SLICE) && l.getValue().equals(slice));
-	}
-
-	public Map<String, MetricFamily> getMetricsFamilies() {
-		return mmap;
-
 	}
 
 	public MetricsResponse mergeWith(MetricsResponse other) {
@@ -69,5 +75,11 @@ public class MetricsResponse {
 			}
 		}
 		return mr;
+	}
+
+	public void writeDelimitedTo(ServletOutputStream os) throws IOException {
+		for(MetricFamily mf : getMetricsFamilies().values()) {
+			mf.writeDelimitedTo(os);
+		}
 	}
 }
