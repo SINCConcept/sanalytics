@@ -31,6 +31,7 @@ public class RandomCounterSensor {
 	public void sendRandom() {
 		//one could CEP on big increases (many > 8 in a timeframe) for example
 		count+= rand.nextInt(10); 
+		System.out.println("sending count " + count);
 		gateway.sendToMqtt(count + "");
 	}
 }

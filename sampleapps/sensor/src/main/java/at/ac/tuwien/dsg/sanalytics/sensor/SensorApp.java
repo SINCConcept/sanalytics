@@ -37,6 +37,7 @@ public class SensorApp {
 
 	@Bean
 	public MqttPahoClientFactory mqttClientFactory() {
+		System.out.println("mqttBrokerURL = " + mqttBrokerURL);
 		DefaultMqttPahoClientFactory factory = new DefaultMqttPahoClientFactory();
 		factory.setServerURIs(mqttBrokerURL);
 		// factory.setUserName("username");
@@ -54,7 +55,6 @@ public class SensorApp {
 			actualSensorName = UUID.randomUUID().toString();
 		else
 			actualSensorName = providedSensorName;
-		
 		return actualSensorName;
 	}
 	
