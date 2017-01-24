@@ -1,24 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>at.ac.tuwien.dsg.sanalytics</groupId>
-    <artifactId>sanalytics</artifactId>
-    <version>0.1-SNAPSHOT</version>
+	<artifactId>sanalytics</artifactId>
+	<version>0.1-SNAPSHOT</version>
 	<packaging>pom</packaging>
-	
+
 	<properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <slf4j.version>1.7.5</slf4j.version>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
-        <spring.boot.starter.version>1.4.3.RELEASE</spring.boot.starter.version>
-    </properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<slf4j.version>1.7.5</slf4j.version>
+		<maven.compiler.source>1.8</maven.compiler.source>
+		<maven.compiler.target>1.8</maven.compiler.target>
+		<spring.boot.starter.version>1.4.3.RELEASE</spring.boot.starter.version>
+	</properties>
 	<modules>
 		<module>filter-proxy</module>
 		<module>sampleapps</module>
 	</modules>
-	
+
 	<dependencyManagement>
 		<dependencies>
 			<!-- https://mvnrepository.com/artifact/org.jrobin/jrobin -->
@@ -33,7 +34,7 @@
 				<artifactId>javamelody-core</artifactId>
 				<version>1.62.0</version>
 			</dependency>
-	
+
 			<!-- https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-integration -->
 			<dependency>
 				<groupId>org.springframework.boot</groupId>
@@ -45,14 +46,19 @@
 				<artifactId>spring-boot-starter-data-mongodb</artifactId>
 				<version>${spring.boot.starter.version}</version>
 			</dependency>
-	
+			<dependency>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-starter-data-rest</artifactId>
+				<version>${spring.boot.starter.version}</version>
+			</dependency>
+
 			<!-- https://mvnrepository.com/artifact/org.springframework.integration/spring-integration-mqtt -->
 			<dependency>
 				<groupId>org.springframework.integration</groupId>
 				<artifactId>spring-integration-mqtt</artifactId>
 				<version>4.3.4.RELEASE</version>
 			</dependency>
-	
+
 		</dependencies>
 	</dependencyManagement>
 </project>	

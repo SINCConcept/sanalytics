@@ -49,7 +49,7 @@ public class CEPApp {
 	public MqttPahoMessageDrivenChannelAdapter inbound() {
 		
 		MqttPahoMessageDrivenChannelAdapter adapter = new MqttPahoMessageDrivenChannelAdapter(mqttBrokerURL,
-				"mqttClient_" + UUID.randomUUID().toString()
+				"cepApp_" + UUID.randomUUID().toString()
 			, "sensor/+/randomcount"
 		// ,"$SYS/broker/bytes/received"
 		// ,"$SYS/broker/bytes/sent"

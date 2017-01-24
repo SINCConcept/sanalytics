@@ -1,0 +1,37 @@
+version: "3"
+services:
+
+  mymongodb:
+    image: mongo:3.4.1
+    ports:
+      - "27017:27017"
+    networks:
+      - app_overlay
+
+  cep:
+    links:
+      - mymongodb
+      - mqtt
+    image: cproinger/sample-cep
+    ports:
+      - "8081:8080"
+    networks:
+      - app_overlay
+    
+  mqtt:
+    image: toke/mosquitto:release-1.4.10-2
+    ports:
+      - "1883:1883"
+    networks:
+      - app_overlay      
+    
+  sensor:
+    links:
+      - mqtt
+    image: cproinger/sample-sensor
+    networks:
+      - app_overlay            
+    
+networks:
+  app_overlay:
+    
