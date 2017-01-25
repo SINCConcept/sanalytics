@@ -9,7 +9,7 @@ services:
       - app_overlay
 
   cep:
-    links:
+    depends_on:
       - mymongodb
       - mqtt
     image: cproinger/sample-cep
@@ -26,12 +26,12 @@ services:
       - app_overlay      
     
   sensor:
-    links:
+    depends_on:
       - mqtt
     image: cproinger/sample-sensor
     networks:
       - app_overlay            
     
 networks:
-  app_overlay:
-    
+  app_overlay: 
+  
