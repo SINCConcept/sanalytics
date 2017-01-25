@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<tosca:Definitions id="HVACSlice" name="HVACSlice"
+	xmlns="http://docs.oasis-open.org/tosca/ns/2011/12" 
+	xmlns:tosca="http://docs.oasis-open.org/tosca/ns/2011/12" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+	xsi:schemaLocation="http://docs.oasis-open.org/tosca/ns/2011/12 http://docs.oasis-open.org/tosca/TOSCA/v1.0/os/schemas/TOSCA-v1.0.xsd"
+	targetNamespace="http://ac.at.tuwien.dsg.sanalytics"
+	xmlns:my="http://ac.at.tuwien.dsg.sanalytics">
+	
+	<tosca:Types>
+		<xsd:schema elementFormDefault="qualified"
+					attributeFormDefault="unqualified"
+					targetNamespace="http://ac.at.tuwien.dsg.sanalytics">
+			<xsd:element name="ServiceEndpointProperties">
+				<xsd:complexType>
+					<xsd:attribute name="dnsName" type="xsd:string"/>
+					<xsd:attribute name="port" type="xsd:positiveInteger"/>
+				</xsd:complexType>
+			</xsd:element>
+		</xsd:schema>
+	</tosca:Types>	
+	
+	<tosca:ArtifactType name="AT_DockerImage">
+		<tosca:documentation>a docker image</tosca:documentation>
+	</tosca:ArtifactType>
+	<!-- i would like to define the artifacts inline in the nodeTemplates
+		but while the documentation lists a possibility this is not
+		xml/xsd compliant :-(.  -->
+	<tosca:ArtifactTemplate type="my:AT_DockerImage" id="mongodbDockerImage">
+		<tosca:ArtifactReferences>
+			<tosca:ArtifactReference reference="docker:mongo:3.4.1" />
+		</tosca:ArtifactReferences>
+	</tosca:ArtifactTemplate>
+	
+	<tosca:ArtifactTemplate type="my:AT_DockerImage" id="sample-cepImage">
+		<tosca:ArtifactReferences>
+			<tosca:ArtifactReference reference="docker:cproinger/sample-cep" />
+		</tosca:ArtifactReferences>
+	</tosca:ArtifactTemplate>
+	
+	<tosca:ArtifactTemplate type="my:AT_DockerImage" id="mqttImage">
+		<tosca:ArtifactReferences>
+			<tosca:ArtifactReference reference="docker:toke/mosquitto:release-1.4.10-2" />
+		</tosca:ArtifactReferences>
+	</tosca:ArtifactTemplate>
+	
+	<tosca:ArtifactTemplate type="my:AT_DockerImage" id="sensorImage">
+		<tosca:ArtifactReferences>
+			<tosca:ArtifactReference reference="docker:cproinger/sample-sensor" />
+		</tosca:ArtifactReferences>
+	</tosca:ArtifactTemplate>
+	
+	<tosca:NodeType name="NT_DockerService">
+		<tosca:documentation>a docker service</tosca:documentation>
+		<tosca:CapabilityDefinitions>
+			<tosca:CapabilityDefinition name="serviceEndpoint" capabilityType="my:CT_ServiceEndpoint"/>
+		</tosca:CapabilityDefinitions>
+	</tosca:NodeType>
+	
+	<tosca:NodeType name="NT_OverlayNetwork">
+		<tosca:documentation>a docker overlay network</tosca:documentation>
+	</tosca:NodeType>
+	
+	<tosca:RelationshipType name="RT_DependsOn">
+		<tosca:ValidSource typeRef="my:NT_DockerService"/>
+		<tosca:ValidTarget typeRef="my:NT_DockerService"/>		
+	</tosca:RelationshipType>
+	
+	<tosca:RelationshipType name="RT_InNetwork">
+		<tosca:ValidSource typeRef="my:NT_DockerService"/>
+		<tosca:ValidTarget typeRef="my:NT_OverlayNetwork"/>
+	</tosca:RelationshipType>
+	
+	<tosca:CapabilityType name="CT_ServiceEndpoint">
+		<tosca:PropertiesDefinition element="my:ServiceEndpointProperties"/>
+	</tosca:CapabilityType>
+	
+	<tosca:RequirementType name="RQ_ServiceEndpoint">
+		<tosca:PropertiesDefinition element="my:ServiceEndpointProperties"/>
+	</tosca:RequirementType>
+	
+	<tosca:RelationshipType name="RT_ServiceEndpointConnection">
+		<tosca:ValidSource typeRef="my:NT_DockerService"/>
+		<tosca:ValidTarget typeRef="my:CT_ServiceEndpoint"/>		
+	</tosca:RelationshipType>
+	
+	<tosca:ServiceTemplate id="SimpleHVACApplication">
+		<!-- 
+		http://docs.oasis-open.org/tosca/TOSCA/v1.0/os/TOSCA-v1.0-os.html
+		Chapter 5: Service Templates, says: 
+		Elements within a Service Template, such as Node Templates defined in the Topology Template, refer to other TOSCA element, such as Node Types that can be defined in the same Definitions document containing the Service Template, or that can be defined in separate, imported Definitions documents.
+		 -->
+		<tosca:TopologyTemplate>
+			<tosca:NodeTemplate type="my:NT_OverlayNetwork" id="appoverlay">
+			</tosca:NodeTemplate>			
+
+			<tosca:NodeTemplate type="my:NT_DockerService" id="mymongodb">
+				<tosca:Capabilities>
+					<tosca:Capability name="serviceEndpoint" 
+						type="my:CT_ServiceEndpoint" 
+						id="mymongodb_serviceEndpoint">
+						<my:ServiceEndpointProperties dnsName="mymongodb" port="27017"/>
+					</tosca:Capability>
+				</tosca:Capabilities>
+				<tosca:DeploymentArtifacts>
+					<tosca:DeploymentArtifact name="image" 
+						artifactType="my:AT_DockerImage" 
+						artifactRef="my:mongodbDockerImage"/>
+				</tosca:DeploymentArtifacts>
+			</tosca:NodeTemplate>
+
+			<tosca:NodeTemplate type="my:NT_DockerService" id="cep">
+				<tosca:Requirements>
+					<tosca:Requirement name="mongodbServiceEndpoint" type="my:RQ_ServiceEndpoint" id="cep_2_mongodb_Connection">
+						<my:ServiceEndpointProperties dnsName="mymongodb" port="27017"/>
+					</tosca:Requirement>
+					<tosca:Requirement name="mqttServiceEndpoint" type="my:RQ_ServiceEndpoint" id="cep_2_mqtt_Connection">
+						<my:ServiceEndpointProperties dnsName="mqtt" port="1883"/>
+					</tosca:Requirement>
+				</tosca:Requirements>
+				<tosca:DeploymentArtifacts>
+					<tosca:DeploymentArtifact name="image" 
+						artifactType="my:AT_DockerImage" 
+						artifactRef="my:sample-cepImage"/>
+				</tosca:DeploymentArtifacts>
+			</tosca:NodeTemplate>
+			
+			<tosca:NodeTemplate type="my:NT_DockerService" id="mqtt">
+				<tosca:Capabilities>
+					<tosca:Capability name="serviceEndpoint" 
+						type="my:CT_ServiceEndpoint" 
+						id="mqtt_serviceEndpoint">
+						<my:ServiceEndpointProperties dnsName="mqtt" port="1883"/>
+					</tosca:Capability>
+				</tosca:Capabilities>
+				<tosca:DeploymentArtifacts>
+					<tosca:DeploymentArtifact name="image" 
+						artifactType="my:AT_DockerImage" 
+						artifactRef="my:mqttImage"/>
+				</tosca:DeploymentArtifacts>
+			</tosca:NodeTemplate>
+			
+			<tosca:NodeTemplate type="my:NT_DockerService" id="sensor">
+				<tosca:Requirements>
+					<tosca:Requirement name="mqttServiceEndpoint" type="my:RQ_ServiceEndpoint" id="sensor_2_mqtt_Connection">
+						<my:ServiceEndpointProperties dnsName="mqtt" port="1883"/>
+					</tosca:Requirement>
+				</tosca:Requirements>
+				<tosca:DeploymentArtifacts>
+					<tosca:DeploymentArtifact name="image" 
+						artifactType="my:AT_DockerImage" 
+						artifactRef="my:sensorImage"/>
+				</tosca:DeploymentArtifacts>
+			</tosca:NodeTemplate>
+			
+			<!-- network relationships -->
+			<tosca:RelationshipTemplate type="my:RT_InNetwork" id="mongoDBInOverlay">
+				<tosca:SourceElement ref="mymongodb"/>
+				<tosca:TargetElement ref="appoverlay"/>
+			</tosca:RelationshipTemplate>
+			<tosca:RelationshipTemplate type="my:RT_InNetwork" id="cepInOverlay">
+				<tosca:SourceElement ref="cep"/>
+				<tosca:TargetElement ref="appoverlay"/>
+			</tosca:RelationshipTemplate>
+			<tosca:RelationshipTemplate type="my:RT_InNetwork" id="mqttInOverlay">
+				<tosca:SourceElement ref="mqtt"/>
+				<tosca:TargetElement ref="appoverlay"/>
+			</tosca:RelationshipTemplate>
+			<tosca:RelationshipTemplate type="my:RT_InNetwork" id="sensorInOverlay">
+				<tosca:SourceElement ref="sensor"/>
+				<tosca:TargetElement ref="appoverlay"/>
+			</tosca:RelationshipTemplate>
+			
+			<!-- service depends_on relationships not needed here
+				because of the capabilities/requirements -->
+<!-- 			<tosca:RelationshipTemplate type="my:RT_DependsOn" id="cep_DependsOn_MongoDB"> -->
+<!-- 				<tosca:SourceElement ref="cep"/> -->
+<!-- 				<tosca:TargetElement ref="mymongodb"/> -->
+<!-- 			</tosca:RelationshipTemplate> -->
+<!-- 			<tosca:RelationshipTemplate type="my:RT_DependsOn" id="cep_DependsOn_MQTTBroker"> -->
+<!-- 				<tosca:SourceElement ref="cep"/> -->
+<!-- 				<tosca:TargetElement ref="mqtt"/> -->
+<!-- 			</tosca:RelationshipTemplate> -->
+<!-- 			<tosca:RelationshipTemplate type="my:RT_DependsOn" id="sensor_DependsOn_MQTTBroker"> -->
+<!-- 				<tosca:SourceElement ref="sensor"/> -->
+<!-- 				<tosca:TargetElement ref="mqtt"/> -->
+<!-- 			</tosca:RelationshipTemplate> -->
+		</tosca:TopologyTemplate>
+	</tosca:ServiceTemplate>
+</tosca:Definitions>
