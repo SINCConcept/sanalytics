@@ -106,33 +106,33 @@
 			</tosca:NodeTemplate>
 			
 			<!-- network relationships -->
-			<tosca:RelationshipTemplate type="RT_InNetwork" id="mongoDBInOverlay">
+			<tosca:RelationshipTemplate type="my:RT_InNetwork" id="mongoDBInOverlay">
 				<tosca:SourceElement ref="mymongodb"/>
 				<tosca:TargetElement ref="appoverlay"/>
 			</tosca:RelationshipTemplate>
-			<tosca:RelationshipTemplate type="RT_InNetwork" id="cepInOverlay">
+			<tosca:RelationshipTemplate type="my:RT_InNetwork" id="cepInOverlay">
 				<tosca:SourceElement ref="cep"/>
 				<tosca:TargetElement ref="appoverlay"/>
 			</tosca:RelationshipTemplate>
-			<tosca:RelationshipTemplate type="RT_InNetwork" id="mqttInOverlay">
+			<tosca:RelationshipTemplate type="my:RT_InNetwork" id="mqttInOverlay">
 				<tosca:SourceElement ref="mqtt"/>
 				<tosca:TargetElement ref="appoverlay"/>
 			</tosca:RelationshipTemplate>
-			<tosca:RelationshipTemplate type="RT_InNetwork" id="sensorInOverlay">
+			<tosca:RelationshipTemplate type="my:RT_InNetwork" id="sensorInOverlay">
 				<tosca:SourceElement ref="sensor"/>
 				<tosca:TargetElement ref="appoverlay"/>
 			</tosca:RelationshipTemplate>
 			
 			<!-- service depends_on relationships -->
-			<tosca:RelationshipTemplate type="my:RT_DependsOn" id="cepDependsOnMongoDB">
+			<tosca:RelationshipTemplate type="my:RT_DependsOn" id="cep_DependsOn_MongoDB">
 				<tosca:SourceElement ref="cep"/>
 				<tosca:TargetElement ref="mymongodb"/>
 			</tosca:RelationshipTemplate>
-			<tosca:RelationshipTemplate type="my:RT_DependsOn" id="cepDependsOnMQTTBroker">
+			<tosca:RelationshipTemplate type="my:RT_DependsOn" id="cep_DependsOn_MQTTBroker">
 				<tosca:SourceElement ref="cep"/>
 				<tosca:TargetElement ref="mqtt"/>
 			</tosca:RelationshipTemplate>
-			<tosca:RelationshipTemplate type="my:RT_DependsOn" id="sensorDependsOnMQTTBroker">
+			<tosca:RelationshipTemplate type="my:RT_DependsOn" id="sensor_DependsOn_MQTTBroker">
 				<tosca:SourceElement ref="sensor"/>
 				<tosca:TargetElement ref="mqtt"/>
 			</tosca:RelationshipTemplate>
