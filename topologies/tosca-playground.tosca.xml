@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<tosca:Definitions id="HVACSlice" name="HVACSlice"
+	xmlns="http://docs.oasis-open.org/tosca/ns/2011/12" 
+	xmlns:tosca="http://docs.oasis-open.org/tosca/ns/2011/12" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+	xsi:schemaLocation="http://docs.oasis-open.org/tosca/ns/2011/12 http://docs.oasis-open.org/tosca/TOSCA/v1.0/os/schemas/TOSCA-v1.0.xsd"
+	targetNamespace="http://ac.at.tuwien.dsg.sanalytics"
+	xmlns:my="http://ac.at.tuwien.dsg.sanalytics">
+
+	<tosca:CapabilityType name="CT_TcpPort">
+		<tosca:PropertiesDefinition element="portNumber"
+			type="xsd:int" />
+	</tosca:CapabilityType>
+
+	<tosca:RequirementType name="RT_BlockStorage">
+		<tosca:PropertiesDefinition element="name"
+			type="xsd:string" />
+	</tosca:RequirementType>
+	
+	<tosca:RequirementType name="RT_MQTT_Broker_Endpoint">
+		<tosca:PropertiesDefinition element="dnsName" type="xsd:string"/>
+		<!-- hm we could use a complex xsd-type to be able to provide the prot as well -->
+<!-- 		<tosca:PropertiesDefinition element="port" type="xsd:int" /> -->
+	</tosca:RequirementType>
+
+	<tosca:NodeType name="NT_SensorNode">
+		<tosca:RequirementDefinitions>
+			<tosca:RequirementDefinition requirementType="RT_MQTT_Broker_Endpoint" name="mqttBroker"/>
+		</tosca:RequirementDefinitions>
+	</tosca:NodeType>
+
+	<tosca:NodeType name="NT_IoTEnvironment"></tosca:NodeType>
+	<tosca:NodeType name="NT_IoTGatewayNode"></tosca:NodeType>
+	<tosca:RelationshipType name="RT_IoTGatewayInstalledInEnvironment">
+		<tosca:ValidSource typeRef="my:NT_IoTGatewayNode"/>
+		<tosca:ValidTarget typeRef="my:NT_IoTEnvironment"/>
+	</tosca:RelationshipType>
+	
+	<tosca:NodeType name="NT_Cloud"></tosca:NodeType>
+	<tosca:NodeType name="NT_CloudNode"></tosca:NodeType>
+	<tosca:RelationshipType name="RT_CloudNodeInstalledInCloud">
+		<tosca:ValidSource typeRef="my:NT_CloudNode"/>
+		<tosca:ValidTarget typeRef="my:NT_Cloud"/>
+	</tosca:RelationshipType>
+
+	<tosca:NodeType name="NT_Volume">
+		<tosca:CapabilityDefinitions>
+			<tosca:CapabilityDefinition name="blockStorage"
+				capabilityType="xsd:string">
+
+			</tosca:CapabilityDefinition>
+		</tosca:CapabilityDefinitions>
+	</tosca:NodeType>
+
+	<tosca:NodeType name="NT_MongoDB">
+		<tosca:RequirementDefinitions>
+			<tosca:RequirementDefinition
+				requirementType="RT_BlockStorage" name="mongovolume">
+			</tosca:RequirementDefinition>
+		</tosca:RequirementDefinitions>
+		<tosca:CapabilityDefinitions>
+			<tosca:CapabilityDefinition name="mongodbProtocol"
+				capabilityType="CT_TcpPort">
+				<tosca:documentation>
+					Exposes a tcp-port that uses the mongodb
+					protocol
+				</tosca:documentation>
+			</tosca:CapabilityDefinition>
+		</tosca:CapabilityDefinitions>
+	</tosca:NodeType>
+
+	<tosca:RelationshipType name="RT_HostOn"></tosca:RelationshipType>
+	<tosca:RelationshipType name="RT_DependsOn"></tosca:RelationshipType>
+	<tosca:RelationshipType name="RT_DNSName"></tosca:RelationshipType>
+	
+	<tosca:ArtifactType name="AT_DockerImage">
+		<tosca:documentation>a docker image</tosca:documentation>
+	</tosca:ArtifactType>
+	<tosca:ArtifactType name="AT_SomeConfigurationFile">
+		<tosca:documentation>Example what else can be used for an ArtifactType</tosca:documentation>
+	</tosca:ArtifactType>
+	
+	<tosca:ArtifactTemplate type="AT_DockerImage" id="mongodbDockerImage">
+		<tosca:ArtifactReferences>
+			<tosca:ArtifactReference reference="https://hub.docker.com/_/mongo/" />
+		</tosca:ArtifactReferences>
+	</tosca:ArtifactTemplate>
+	
+	<tosca:ServiceTemplate id="IoTTopology">
+		<!-- 
+		http://docs.oasis-open.org/tosca/TOSCA/v1.0/os/TOSCA-v1.0-os.html
+		Chapter 5: Service Templates, says: 
+		Elements within a Service Template, such as Node Templates defined in the Topology Template, refer to other TOSCA element, such as Node Types that can be defined in the same Definitions document containing the Service Template, or that can be defined in separate, imported Definitions documents.
+		 -->
+		<tosca:TopologyTemplate>
+
+			<tosca:NodeTemplate type="NT_MongoDB" id="mymondodb">
+				<tosca:Requirements>
+					<tosca:Requirement name="storage" type="RT_BlockStorage"
+						id="mongodbStorage">
+					</tosca:Requirement>
+				</tosca:Requirements>
+				
+			</tosca:NodeTemplate>
+
+			<tosca:NodeTemplate type="Software" id="sensorUnit">
+
+			</tosca:NodeTemplate>
+			<tosca:NodeTemplate type="IoTGateway" id="iotGateway"></tosca:NodeTemplate>
+
+
+			<!-- <tosca:RelationshipTemplate type="MQTTComm" id="sensorToBroker"> -->
+			<!-- </tosca:RelationshipTemplate> -->
+
+			<tosca:RelationshipTemplate type="HOSTON"
+				id="sonsorOnDocker">
+				<tosca:SourceElement ref="sensorUnit" />
+				<tosca:TargetElement ref="iotGateway" />
+			</tosca:RelationshipTemplate>
+		</tosca:TopologyTemplate>
+	</tosca:ServiceTemplate>
+</tosca:Definitions>
