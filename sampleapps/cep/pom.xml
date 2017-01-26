@@ -49,6 +49,21 @@
 			<artifactId>spring-beans</artifactId>
 			<version>4.3.5.RELEASE</version>
 		</dependency>
+		<!-- The client -->
+		<dependency>
+			<groupId>io.prometheus</groupId>
+			<artifactId>simpleclient</artifactId>
+		</dependency>
+		<!-- Hotspot JVM metrics -->
+		<dependency>
+			<groupId>io.prometheus</groupId>
+			<artifactId>simpleclient_hotspot</artifactId>
+		</dependency>
+		<!-- Exposition servlet -->
+		<dependency>
+			<groupId>io.prometheus</groupId>
+			<artifactId>simpleclient_servlet</artifactId>
+		</dependency>
 	</dependencies>
 
 	<build>

@@ -14,6 +14,7 @@
 		<maven.compiler.source>1.8</maven.compiler.source>
 		<maven.compiler.target>1.8</maven.compiler.target>
 		<spring.boot.starter.version>1.4.3.RELEASE</spring.boot.starter.version>
+		<prometheus.client.version>0.0.20</prometheus.client.version>
 	</properties>
 	<modules>
 		<module>filter-proxy</module>
@@ -63,7 +64,30 @@
 				<artifactId>spring-integration-mqtt</artifactId>
 				<version>4.3.4.RELEASE</version>
 			</dependency>
-
+			<!-- The client -->
+			<dependency>
+				<groupId>io.prometheus</groupId>
+				<artifactId>simpleclient</artifactId>
+				<version>${prometheus.client.version}</version>
+			</dependency>
+			<!-- Hotspot JVM metrics -->
+			<dependency>
+				<groupId>io.prometheus</groupId>
+				<artifactId>simpleclient_hotspot</artifactId>
+				<version>${prometheus.client.version}</version>
+			</dependency>
+			<!-- Exposition servlet -->
+			<dependency>
+				<groupId>io.prometheus</groupId>
+				<artifactId>simpleclient_servlet</artifactId>
+				<version>${prometheus.client.version}</version>
+			</dependency>
+			<!-- Pushgateway exposition -->
+			<dependency>
+				<groupId>io.prometheus</groupId>
+				<artifactId>simpleclient_pushgateway</artifactId>
+				<version>${prometheus.client.version}</version>
+			</dependency>
 		</dependencies>
 	</dependencyManagement>
 </project>	

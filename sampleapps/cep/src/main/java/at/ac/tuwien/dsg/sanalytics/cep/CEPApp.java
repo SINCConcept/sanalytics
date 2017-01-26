@@ -5,6 +5,7 @@ import java.util.UUID;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.boot.web.servlet.ServletRegistrationBean;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.integration.annotation.ServiceActivator;
@@ -19,6 +20,10 @@ import com.espertech.esper.client.EPAdministrator;
 import com.espertech.esper.client.EPRuntime;
 import com.espertech.esper.client.EPServiceProvider;
 import com.espertech.esper.client.EPServiceProviderManager;
+
+import io.prometheus.client.Counter;
+import io.prometheus.client.exporter.MetricsServlet;
+import io.prometheus.client.hotspot.DefaultExports;
 
 @SpringBootApplication
 public class CEPApp {
@@ -35,6 +40,12 @@ public class CEPApp {
 		// }
 		// ctx.close();
 
+	}
+	
+	@Bean
+	public ServletRegistrationBean servletRegistrationBean(){
+		DefaultExports.initialize();
+	    return new ServletRegistrationBean(new MetricsServlet(),"/metrics", "/metrics/");
 	}
 
 	@Bean
@@ -81,8 +92,13 @@ public class CEPApp {
 		return cepServiceProvider().getEPRuntime();
 	}
 	
+	static final Counter messages = Counter.build()
+			.name("messages_total").help("Total number of messages received via mqtt")
+			.register();
+	
 	@ServiceActivator(inputChannel = "mqttInputChannel")
 	public void process(Message<?> message) {
+		messages.inc();
 		System.out.println("message: " + message);
 		Long cnt = Long.valueOf(message.getPayload().toString());
 		cepRT().sendEvent(new RandomCount(cnt, message.getHeaders().getTimestamp()));
