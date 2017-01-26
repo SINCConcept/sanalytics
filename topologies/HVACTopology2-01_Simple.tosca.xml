@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<tosca:Definitions id="HVACSlice" name="HVACSlice"
+	xmlns="http://docs.oasis-open.org/tosca/ns/2011/12" 
+	xmlns:tosca="http://docs.oasis-open.org/tosca/ns/2011/12" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+	xsi:schemaLocation="http://docs.oasis-open.org/tosca/ns/2011/12 http://docs.oasis-open.org/tosca/TOSCA/v1.0/os/schemas/TOSCA-v1.0.xsd"
+	targetNamespace="http://ac.at.tuwien.dsg.sanalytics"
+	xmlns:my="http://ac.at.tuwien.dsg.sanalytics">
+	
+	<!-- this could directly be transformed to the docker-compose file
+		for stack deployment docker-compose-sample-stack.yml
+		
+		the ports there are just defined so i can access 
+		the respective services from the outside but it is not needed
+		to run -->
+	<tosca:Import importType="http://docs.oasis-open.org/tosca/ns/2011/12"
+		location="./HVACArtifacts.tosca.xml"
+		namespace="http://ac.at.tuwien.dsg.sanalytics"/>
+	
+	<tosca:ServiceTemplate id="HVACApplication">
+		<!-- 
+		http://docs.oasis-open.org/tosca/TOSCA/v1.0/os/TOSCA-v1.0-os.html
+		Chapter 5: Service Templates, says: 
+		Elements within a Service Template, such as Node Templates defined in the Topology Template, refer to other TOSCA element, such as Node Types that can be defined in the same Definitions document containing the Service Template, or that can be defined in separate, imported Definitions documents.
+		 -->
+		<tosca:TopologyTemplate>
+			<tosca:NodeTemplate type="my:NT_OverlayNetwork" id="IoTOverlay">
+			</tosca:NodeTemplate>
+			<tosca:NodeTemplate type="my:NT_OverlayNetwork" id="IoT2NFVOverlay">
+			</tosca:NodeTemplate>
+			<tosca:NodeTemplate type="my:NT_OverlayNetwork" id="NFVOverlay">
+			</tosca:NodeTemplate>
+			<tosca:NodeTemplate type="my:NT_OverlayNetwork" id="NFV2CloudOverlay">
+			</tosca:NodeTemplate>
+			<tosca:NodeTemplate type="my:NT_OverlayNetwork" id="CloudOverlay">
+			</tosca:NodeTemplate>						
+
+			<tosca:NodeTemplate type="my:NT_DockerService" id="mymongodb">
+				<tosca:DeploymentArtifacts>
+					<tosca:DeploymentArtifact name="image" 
+						artifactType="my:AT_DockerImage" 
+						artifactRef="my:mongodbDockerImage"/>
+				</tosca:DeploymentArtifacts>
+			</tosca:NodeTemplate>
+			
+			<tosca:NodeTemplate type="my:NT_DockerService" id="rabbitMQ2mongo">
+				<tosca:DeploymentArtifacts>
+					<tosca:DeploymentArtifact name="image" 
+						artifactType="my:AT_DockerImage" 
+						artifactRef="my:sample-rabbitMQ2mongoImage"/>
+				</tosca:DeploymentArtifacts>
+			</tosca:NodeTemplate>
+			
+			<tosca:NodeTemplate type="my:NT_DockerService" id="rabbitMQ">
+				<tosca:DeploymentArtifacts>
+					<tosca:DeploymentArtifact name="image" 
+						artifactType="my:AT_DockerImage" 
+						artifactRef="my:sample-cep2RabbitMQImage"/>
+				</tosca:DeploymentArtifacts>
+			</tosca:NodeTemplate>
+
+			<tosca:NodeTemplate type="my:NT_DockerService" id="cep">
+				<tosca:DeploymentArtifacts>
+					<tosca:DeploymentArtifact name="image" 
+						artifactType="my:AT_DockerImage" 
+						artifactRef="my:sample-cep2RabbitMQ"/>
+				</tosca:DeploymentArtifacts>
+			</tosca:NodeTemplate>
+			
+			<tosca:NodeTemplate type="my:NT_DockerService" id="mqttNFV">
+				<tosca:DeploymentArtifacts>
+					<tosca:DeploymentArtifact name="image" 
+						artifactType="my:AT_DockerImage" 
+						artifactRef="my:mqttImage"/>
+				</tosca:DeploymentArtifacts>
+			</tosca:NodeTemplate>
+			
+			<tosca:NodeTemplate type="my:NT_DockerService" id="mqtt2mqttBridge">
+				<tosca:DeploymentArtifacts>
+					<tosca:DeploymentArtifact name="image" 
+						artifactType="my:AT_DockerImage" 
+						artifactRef="my:sample-mqtt2mqttBridgeImage"/>
+				</tosca:DeploymentArtifacts>
+			</tosca:NodeTemplate>
+			
+			<tosca:NodeTemplate type="my:NT_DockerService" id="mqttIoT">
+				<tosca:DeploymentArtifacts>
+					<tosca:DeploymentArtifact name="image" 
+						artifactType="my:AT_DockerImage" 
+						artifactRef="my:mqttImage"/>
+				</tosca:DeploymentArtifacts>
+			</tosca:NodeTemplate>
+			
+			<tosca:NodeTemplate type="my:NT_DockerService" id="sensor">
+				<tosca:DeploymentArtifacts>
+					<tosca:DeploymentArtifact name="image" 
+						artifactType="my:AT_DockerImage" 
+						artifactRef="my:sensorImage"/>
+				</tosca:DeploymentArtifacts>
+			</tosca:NodeTemplate>
+			
+			<!-- network relationships -->
+			<tosca:RelationshipTemplate type="my:RT_InNetwork" id="mongoDBInOverlay">
+				<tosca:SourceElement ref="mymongodb"/>
+				<tosca:TargetElement ref="CloudOverlay"/>
+			</tosca:RelationshipTemplate>
+			<tosca:RelationshipTemplate type="my:RT_InNetwork" id="rabbitmq2mongoInOverlay">
+				<tosca:SourceElement ref="rabbitmq2mongo"/>
+				<tosca:TargetElement ref="CloudOverlay"/>
+			</tosca:RelationshipTemplate>
+			<tosca:RelationshipTemplate type="my:RT_InNetwork" id="rabbitMQInCloudOverlay">
+				<tosca:SourceElement ref="rabbitMQ"/>
+				<tosca:TargetElement ref="CloudOverlay"/>
+			</tosca:RelationshipTemplate>
+			<tosca:RelationshipTemplate type="my:RT_InNetwork" id="rabbitMQInNFV2CloudOverlay">
+				<tosca:SourceElement ref="rabbitMQ"/>
+				<tosca:TargetElement ref="NFV2CloudOverlay"/>
+			</tosca:RelationshipTemplate>
+			<tosca:RelationshipTemplate type="my:RT_InNetwork" id="cepInNFV2CloudOverlay">
+				<tosca:SourceElement ref="cep"/>
+				<tosca:TargetElement ref="NFV2CloudOverlay"/>
+			</tosca:RelationshipTemplate>
+			<tosca:RelationshipTemplate type="my:RT_InNetwork" id="cepInNFVOverlay">
+				<tosca:SourceElement ref="cep"/>
+				<tosca:TargetElement ref="NFVOverlay"/>
+			</tosca:RelationshipTemplate>
+			<tosca:RelationshipTemplate type="my:RT_InNetwork" id="mqttNFVInOverlay">
+				<tosca:SourceElement ref="mqttNFV"/>
+				<tosca:TargetElement ref="NFVOverlay"/>
+			</tosca:RelationshipTemplate>
+			<tosca:RelationshipTemplate type="my:RT_InNetwork" id="mqttNFVInIoT2NFVOverlay">
+				<tosca:SourceElement ref="mqttNFV"/>
+				<tosca:TargetElement ref="IoT2NFVOverlay"/>
+			</tosca:RelationshipTemplate>
+			<tosca:RelationshipTemplate type="my:RT_InNetwork" id="mqtt2mqttBridgeInIoT2NFVOverlay">
+				<tosca:SourceElement ref="mqtt2mqttBridge"/>
+				<tosca:TargetElement ref="IoT2NFVOverlay"/>
+			</tosca:RelationshipTemplate>
+			<tosca:RelationshipTemplate type="my:RT_InNetwork" id="mqtt2mqttBridgeInIoTOverlay">
+				<tosca:SourceElement ref="mqtt2mqttBridge"/>
+				<tosca:TargetElement ref="IoTOverlay"/>
+			</tosca:RelationshipTemplate>
+			<tosca:RelationshipTemplate type="my:RT_InNetwork" id="mqttIoTInOverlay">
+				<tosca:SourceElement ref="mqttIoT"/>
+				<tosca:TargetElement ref="IoTOverlay"/>
+			</tosca:RelationshipTemplate>
+			<tosca:RelationshipTemplate type="my:RT_InNetwork" id="sensorInOverlay">
+				<tosca:SourceElement ref="sensor"/>
+				<tosca:TargetElement ref="IoTOverlay"/>
+			</tosca:RelationshipTemplate>
+			
+			<!-- service depends_on relationships -->
+			<tosca:RelationshipTemplate type="my:RT_DependsOn" id="rabbit2mongo_DependsOn_MongoDB">
+				<tosca:SourceElement ref="rabbit2mongo"/>
+				<tosca:TargetElement ref="mymongodb"/>
+			</tosca:RelationshipTemplate>
+			<tosca:RelationshipTemplate type="my:RT_DependsOn" id="rabbit2mongo_DependsOn_RabbitMQ">
+				<tosca:SourceElement ref="rabbit2mongo"/>
+				<tosca:TargetElement ref="rabbitMQ"/>
+			</tosca:RelationshipTemplate>
+			
+			<tosca:RelationshipTemplate type="my:RT_DependsOn" id="cep_DependsOn_RabbitMQ">
+				<tosca:SourceElement ref="cep"/>
+				<tosca:TargetElement ref="rabbitMQ"/>
+			</tosca:RelationshipTemplate>
+			<tosca:RelationshipTemplate type="my:RT_DependsOn" id="cep_DependsOn_MQTTBroker">
+				<tosca:SourceElement ref="cep"/>
+				<tosca:TargetElement ref="mqttNFV"/>
+			</tosca:RelationshipTemplate>
+
+			<tosca:RelationshipTemplate type="my:RT_DependsOn" id="mqtt2mqttBridge_DependsOn_MQTTNFV">
+				<tosca:SourceElement ref="mqtt2mqttBridge"/>
+				<tosca:TargetElement ref="mqttNFV"/>
+			</tosca:RelationshipTemplate>
+			<tosca:RelationshipTemplate type="my:RT_DependsOn" id="mqtt2mqttBridge_DependsOn_MQTTIoT">
+				<tosca:SourceElement ref="mqtt2mqttBridge"/>
+				<tosca:TargetElement ref="mqttIoT"/>
+			</tosca:RelationshipTemplate>
+			<tosca:RelationshipTemplate type="my:RT_DependsOn" id="sensor_DependsOn_MQTTIoT">
+				<tosca:SourceElement ref="sensor"/>
+				<tosca:TargetElement ref="mqttIoT"/>
+			</tosca:RelationshipTemplate>
+		</tosca:TopologyTemplate>
+	</tosca:ServiceTemplate>
+</tosca:Definitions>

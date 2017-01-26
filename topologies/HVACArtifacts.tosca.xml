@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<tosca:Definitions id="HVACArtifacts" name="HVACArtifacts"
+	xmlns="http://docs.oasis-open.org/tosca/ns/2011/12" 
+	xmlns:tosca="http://docs.oasis-open.org/tosca/ns/2011/12" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+	xsi:schemaLocation="http://docs.oasis-open.org/tosca/ns/2011/12 http://docs.oasis-open.org/tosca/TOSCA/v1.0/os/schemas/TOSCA-v1.0.xsd"
+	targetNamespace="http://ac.at.tuwien.dsg.sanalytics"
+	xmlns:my="http://ac.at.tuwien.dsg.sanalytics">
+	
+	
+	<tosca:ArtifactType name="AT_DockerImage">
+		<tosca:documentation>a docker image</tosca:documentation>
+	</tosca:ArtifactType>
+	<!-- i would like to define the artifacts inline in the nodeTemplates
+		but while the documentation lists a possibility this is not
+		xml/xsd compliant :-(.  -->
+	<tosca:ArtifactTemplate type="my:AT_DockerImage" id="mongodbDockerImage">
+		<tosca:ArtifactReferences>
+			<tosca:ArtifactReference reference="docker:mongo:3.4.1" />
+		</tosca:ArtifactReferences>
+	</tosca:ArtifactTemplate>
+	
+	<tosca:ArtifactTemplate type="my:AT_DockerImage" id="sample-cepImage">
+		<tosca:ArtifactReferences>
+			<tosca:ArtifactReference reference="docker:cproinger/sample-cep" />
+		</tosca:ArtifactReferences>
+	</tosca:ArtifactTemplate>
+	
+	<tosca:ArtifactTemplate type="my:AT_DockerImage" id="mqttImage">
+		<tosca:ArtifactReferences>
+			<tosca:ArtifactReference reference="docker:toke/mosquitto:release-1.4.10-2" />
+		</tosca:ArtifactReferences>
+	</tosca:ArtifactTemplate>
+	
+	<tosca:ArtifactTemplate type="my:AT_DockerImage" id="sensorImage">
+		<tosca:ArtifactReferences>
+			<tosca:ArtifactReference reference="docker:cproinger/sample-sensor" />
+		</tosca:ArtifactReferences>
+	</tosca:ArtifactTemplate>
+	
+	<tosca:ArtifactTemplate type="my:AT_DockerImage" id="sample-cep2RabbitMQImage">
+		<tosca:ArtifactReferences>
+			<tosca:ArtifactReference reference="docker:cproinger/sample-cep2RabbitMQ" />
+		</tosca:ArtifactReferences>
+	</tosca:ArtifactTemplate>
+	
+	<tosca:ArtifactTemplate type="my:AT_DockerImage" id="sample-rabbitMQ2mongoImage">
+		<tosca:ArtifactReferences>
+			<tosca:ArtifactReference reference="docker:cproinger/sample-rabbitMQ2mongo" />
+		</tosca:ArtifactReferences>
+	</tosca:ArtifactTemplate>
+	
+	<tosca:ArtifactTemplate type="my:AT_DockerImage" id="sample-mqtt2mqttBridgeImage">
+		<tosca:ArtifactReferences>
+			<tosca:ArtifactReference reference="docker:cproinger/sample-mqtt2mqttBridge" />
+		</tosca:ArtifactReferences>
+	</tosca:ArtifactTemplate>
+	
+	<tosca:ArtifactTemplate type="my:AT_DockerImage" id="sample-http2mongoImage">
+		<tosca:ArtifactReferences>
+			<tosca:ArtifactReference reference="docker:cproinger/sample-http2mongo" />
+		</tosca:ArtifactReferences>
+	</tosca:ArtifactTemplate>
+	
+	
+	<tosca:NodeType name="NT_DockerService">
+		<tosca:documentation>a docker service</tosca:documentation>
+	</tosca:NodeType>
+	
+	<tosca:NodeType name="NT_OverlayNetwork">
+		<tosca:documentation>a docker overlay network</tosca:documentation>
+	</tosca:NodeType>
+	
+	<tosca:RelationshipType name="RT_DependsOn">
+		<tosca:ValidSource typeRef="my:NT_DockerService"/>
+		<tosca:ValidTarget typeRef="my:NT_DockerService"/>		
+	</tosca:RelationshipType>
+	
+	<tosca:RelationshipType name="RT_InNetwork">
+		<tosca:ValidSource typeRef="my:NT_DockerService"/>
+		<tosca:ValidTarget typeRef="my:NT_OverlayNetwork"/>
+	</tosca:RelationshipType>
+</tosca:Definitions>	
