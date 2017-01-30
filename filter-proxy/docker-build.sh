@@ -1,0 +1,1 @@
+ docker build -t cproinger/sanalytics-filter-proxy .

@@ -18,8 +18,11 @@ public class DNSJavaDNSLookup implements DNSLookup {
 
 		// the first request takes a long time
 		try {
+			System.out.println("looking up dns A records for '" + name + "'");
 			Record[] records = new Lookup(name, Type.A).run();
-			System.out.println("entries: " + records == null ? 0 : records.length);
+			System.out.println("entries: " + (records == null ? 0 : records.length));
+			if(records == null)
+				return new ArrayList<>();
 			for (int i = 0; i < records.length; i++) {
 
 				ARecord mx = (ARecord) records[i];

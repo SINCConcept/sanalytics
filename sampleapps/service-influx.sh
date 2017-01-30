@@ -1,0 +1,1 @@
+docker service create -p 8083:8083 -p 8086:8086  --network="custom_monitoring" --name influx --mount type=bind,source=/c/Users/cproinger/Documents/Docker/test_data/influxdb,target=/influx_test_data --mount type=bind,source=/c/Users/cproinger/Documents/Docker/influx,target=/var/lib/influxdb --container-label sanalytics.slice="slice0" influxdb:1.1.0

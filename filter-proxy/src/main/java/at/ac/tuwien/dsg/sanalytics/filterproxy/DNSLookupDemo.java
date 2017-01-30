@@ -2,7 +2,6 @@ package at.ac.tuwien.dsg.sanalytics.filterproxy;
 
 import org.xbill.DNS.ARecord;
 import org.xbill.DNS.Lookup;
-import org.xbill.DNS.MXRecord;
 import org.xbill.DNS.Record;
 import org.xbill.DNS.TextParseException;
 import org.xbill.DNS.Type;

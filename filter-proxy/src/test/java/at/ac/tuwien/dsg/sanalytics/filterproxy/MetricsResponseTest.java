@@ -33,7 +33,7 @@ public class MetricsResponseTest {
 	}
 
 	private Builder newSliceMetric(String sliceName) {
-		return Metric.newBuilder().addLabel(newLabel(MetricsResponse.CONTAINER_LABEL_SANALYTICS_SLICE, sliceName))
+		return Metric.newBuilder().addLabel(newLabel(Options.FILTER_CONTAINER_LABEL_NAME, sliceName))
 				.setCounter(newCounter());
 	}
 

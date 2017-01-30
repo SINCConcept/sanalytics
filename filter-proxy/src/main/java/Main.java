@@ -4,7 +4,6 @@ import java.net.URL;
 import java.security.ProtectionDomain;
 
 import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.nio.SelectChannelConnector;
 import org.eclipse.jetty.webapp.WebAppContext;
 
 public class Main {

@@ -1,0 +1,18 @@
+version: "3"
+
+services:
+
+  cadvisor:
+    image: google/cadvisor:latest
+    deploy: 
+      mode: global  
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var:ro
+      - /sys/sys:ro
+      - /var/lib/docker:/var/lib/docker:ro
+    networks:
+      - app_overlay
+      
+networks: 
+  app_overlay:        

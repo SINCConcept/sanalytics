@@ -5,15 +5,13 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
+import java.util.stream.Collectors;
 
 import javax.servlet.ServletException;
-import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HeaderElement;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -36,25 +34,34 @@ public class MetricsSliceFilterServlet extends HttpServlet {
 
 	private final static class MetricsRequestFilter {
 		private String sliceName;
+		private String[] omitLabels;
 
 		public MetricsRequestFilter(String sliceName) {
+			this(sliceName, null);
+		}
+
+		/**
+		 * @param omitLabels, can be used to filter out labels
+		 * */
+		public MetricsRequestFilter(String sliceName, String[] omitLabels) {
 			this.sliceName = sliceName;
+			this.omitLabels = omitLabels;
 		}
 
 		public MetricsResponse callMetricsEndpoint(String addr) {
-
 			try(CloseableHttpClient client = CLIENT_BUILDER.build()) {
 				HttpGet getMetricsRequest = new HttpGet(addr);
 				getMetricsRequest.addHeader("Accept", PROMETHEUS_PROTOBUF_CONTENT_TYPE);
 				System.out.println("calling " + addr);
 				try(CloseableHttpResponse resp = client.execute(getMetricsRequest)) {
-					return new MetricsResponse(resp.getEntity().getContent(), sliceName);
+					return new MetricsResponse(resp.getEntity().getContent(), sliceName, omitLabels);
 				}
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			return null;
+
 		}
 		
 	}
@@ -76,10 +83,13 @@ public class MetricsSliceFilterServlet extends HttpServlet {
 			
 			@Override
 			public List<String> getAllAddresses(String name) {
-				ArrayList<String> ads = new ArrayList<>();
-				ads.add("http://192.168.99.100:8080/metrics");
-				ads.add("http://192.168.99.101:8080/metrics");
-				return ads;
+				return new DNSJavaDNSLookup().getAllAddresses(Options.TARGET_DNSNAME)
+					.stream().map(a -> "http://" + a.getHostAddress() + ":8080/metrics")
+					.collect(Collectors.toList());
+//				ArrayList<String> ads = new ArrayList<>();
+//				ads.add("http://192.168.99.100:8080/metrics");
+//				ads.add("http://192.168.99.101:8080/metrics");
+//				return ads;
 			}
 		};
 	}
@@ -91,7 +101,8 @@ public class MetricsSliceFilterServlet extends HttpServlet {
 				&& req.getRequestURI().length() > REQUEST_URI_METRICS_PATH_LENGTH) {
 			sliceName = req.getRequestURI().substring(REQUEST_URI_METRICS_PATH_LENGTH);
 		}
-		return new MetricsRequestFilter(sliceName);
+		
+		return new MetricsRequestFilter(sliceName, req.getParameterValues("omit_label"));
 	}
 
 	@Override
@@ -116,14 +127,16 @@ public class MetricsSliceFilterServlet extends HttpServlet {
 
 	private boolean shouldSendProtobufResponse(HttpServletRequest req) {
 		String accept = req.getHeader("Accept");
-		HeaderElement[] acceptElements = BasicHeaderValueParser.parseElements(accept, null);
-		HeaderElement selectedAcceptHeader = Arrays.stream(acceptElements)
-			.filter(he -> he.getName().startsWith("text/plain") 
-					|| (he.getName().equals(PROMETHEUS_PROTOBUF_ACCEPT_HEADER)
-							&& true)
-					|| he.getName().startsWith("*/*"))
-			.findFirst().get();
-			
+		HeaderElement selectedAcceptHeader = null;
+		if(accept != null) {
+			HeaderElement[] acceptElements = BasicHeaderValueParser.parseElements(accept, null);
+			selectedAcceptHeader = Arrays.stream(acceptElements)
+				.filter(he -> he.getName().startsWith("text/plain") 
+						|| (he.getName().equals(PROMETHEUS_PROTOBUF_ACCEPT_HEADER)
+								&& true)
+						|| he.getName().startsWith("*/*"))
+				.findFirst().get();
+		}
 		return selectedAcceptHeader == null
 				|| selectedAcceptHeader.getName().equals(PROMETHEUS_PROTOBUF_ACCEPT_HEADER);
 	}

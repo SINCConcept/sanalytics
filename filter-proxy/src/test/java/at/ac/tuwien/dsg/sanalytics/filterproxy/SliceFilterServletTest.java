@@ -1,15 +1,15 @@
 package at.ac.tuwien.dsg.sanalytics.filterproxy;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockserver.model.HttpRequest.request;
+import static org.mockserver.model.HttpResponse.response;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,11 +27,6 @@ import org.mockito.junit.MockitoJUnitRunner;
 import org.mockserver.client.server.MockServerClient;
 import org.mockserver.junit.MockServerRule;
 import org.mockserver.verify.VerificationTimes;
-
-import io.prometheus.client.Metrics.MetricFamily;
-
-import static org.mockserver.model.HttpRequest.*;
-import static org.mockserver.model.HttpResponse.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class SliceFilterServletTest {

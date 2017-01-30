@@ -16,7 +16,6 @@ import io.prometheus.client.Metrics.MetricFamily.Builder;
 
 public class MetricsResponse {
 
-	public static final String CONTAINER_LABEL_SANALYTICS_SLICE = "container_label_sanalytics_slice";
 	public static MetricsResponse createEmpty() {
 		return new MetricsResponse();
 	}
@@ -29,13 +28,19 @@ public class MetricsResponse {
 	
 	
 	public MetricsResponse(InputStream input, String slice) {
+		this(input, slice, new String[0]);
+	}
+	
+	public MetricsResponse(InputStream input, String slice, String[] omitLabels) {
+		//TODO implement omitLabels functionality
 		MetricFamily mf;
 		try {
 			while((mf = Metrics.MetricFamily.parseDelimitedFrom(input)) != null) {
 				List<Metric> metrics = mf.getMetricList();
 				
-				List<Metric> filteredMetrics = metrics.stream().filter(m -> hasSliceLabel(m, slice))
-					.collect(Collectors.toList());
+				List<Metric> filteredMetrics = metrics.stream()
+						.filter(m -> hasSliceLabel(m, slice))
+						.collect(Collectors.toList());
 				
 				if(filteredMetrics.size() > 0) {
 					Builder mb = mf.toBuilder();
@@ -49,14 +54,15 @@ public class MetricsResponse {
 			e.printStackTrace();
 		}
 	}
-	
+
+
 	Map<String, MetricFamily> getMetricsFamilies() {
 		return mmap;
 	}
 
 	private boolean hasSliceLabel(Metric m, String slice) {
 		return slice == null || m.getLabelList().stream()
-				.anyMatch(l -> l.getName().equals(CONTAINER_LABEL_SANALYTICS_SLICE) && l.getValue().equals(slice));
+				.anyMatch(l -> l.getName().equals(Options.FILTER_CONTAINER_LABEL_NAME) && l.getValue().equals(slice));
 	}
 
 	public MetricsResponse mergeWith(MetricsResponse other) {
