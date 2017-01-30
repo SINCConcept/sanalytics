@@ -5,6 +5,7 @@ import java.util.Arrays;
 import javax.annotation.PostConstruct;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import com.espertech.esper.client.EPAdministrator;
@@ -12,9 +13,8 @@ import com.espertech.esper.client.EPStatement;
 import com.espertech.esper.client.EventBean;
 import com.espertech.esper.client.UpdateListener;
 
-import io.prometheus.client.Counter;
-
 @Component
+@Profile({"default", "mqtt"})
 public class RandomCountAnalyzer {
 
 	@Autowired
@@ -22,9 +22,6 @@ public class RandomCountAnalyzer {
 	
 	@Autowired
 	private RandomCountRepository rcRepo;
-	
-	private final static Counter eventsSaved = Counter.build()
-			.name("events_saved_total").help("Total number of events saved to backend store").register();
 	
 	@PostConstruct
 	private void initStatement() {
@@ -38,7 +35,7 @@ public class RandomCountAnalyzer {
 				for(EventBean eb : newEvents) {
 					RandomCount rc = (RandomCount) eb.getUnderlying();
 					rcRepo.save(rc);
-					eventsSaved.inc();
+					Metrics.EVENTS_SAVED.inc();
 				}
 			}
 		});

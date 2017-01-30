@@ -17,6 +17,12 @@ services:
       - "27017:27017"
     networks:
       - app_overlay
+      
+  rabbitmq: 
+    image: rabbitmq:management
+    ports: 
+      - "5672:5672"
+      - "15672:15672"      
 
   cep:
     depends_on:
