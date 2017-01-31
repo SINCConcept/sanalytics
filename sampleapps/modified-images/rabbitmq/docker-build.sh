@@ -1,0 +1,1 @@
+ docker build -t cproinger/rabbitmq-management-monitoring .

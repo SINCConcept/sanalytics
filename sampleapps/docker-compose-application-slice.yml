@@ -19,7 +19,7 @@ services:
       - app_overlay
       
   rabbitmq: 
-    image: rabbitmq:management
+    image: rabbitmq:3.6.6-management-alpine
     ports: 
       - "5672:5672"
       - "15672:15672"      

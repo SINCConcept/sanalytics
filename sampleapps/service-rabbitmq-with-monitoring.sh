@@ -1,0 +1,1 @@
+docker service create --name rabbitmq -p 5672:5672 -p 15672:15672 -p 9090:9090 --network=custom_overlay cproinger/rabbitmq-management-monitoring

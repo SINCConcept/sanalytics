@@ -1,1 +1,1 @@
-docker service create --name rabbitmq -p 5672:5672 -p 15672:15672 --network=custom_overlay rabbitmq:3-management-alpine
+docker service create --name rabbitmq -p 5672:5672 -p 15672:15672 --network=custom_overlay rabbitmq:3.6.6-management-alpine
