@@ -1,1 +1,1 @@
-docker service create --network custom_overlay --name mqtt --container-label sanalytics.slice="slice0" --label sanalytics.slice="slice0" -p 1883:1883 -p 9001:9001 toke/mosquitto:release-1.4.10-2
+docker service create --network custom_overlay --name mqtt --container-label sanalytics.slice="slice0" --label sanalytics.slice="slice0" -p 1883:1883 toke/mosquitto:release-1.4.10-2

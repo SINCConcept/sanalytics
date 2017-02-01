@@ -1,9 +1,10 @@
 scrape_configs:
   # The job name is added as a label `job=<job_name>` to any timeseries scraped from this config.
-  - job_name: 'cadvisor'
+  - job_name: 'platform'
 
     # Override the global default and scrape targets from this job every 10 seconds.
-    scrape_interval: 10s
+    scrape_interval: 30s
+    scrape_timeout: 30s
 
     # metrics_path defaults to '/metrics'
     # scheme defaults to 'http'.
@@ -15,12 +16,21 @@ scrape_configs:
   - job_name: 'cep'
 
     # Override the global default and scrape targets from this job every 5 seconds.
-    scrape_interval: 10s
+    scrape_interval: 30s
+    scrape_timeout: 30s
 
     static_configs:
-      - targets: ['cep:8080']
+      - targets: ['cep.mystack:8080', 'mystack_cep:8080', 'cep:8080']
   
   - job_name: 'mongo'
+    scrape_interval: 30s
+    scrape_timeout: 30s
     static_configs: 
-      - targets: ['mymongodb:9001']
+      - targets: ['mymongodb.mystack:9001', 'mystack_mymongodb:9001', 'mymongodb:9001']
       
+  - job_name: 'rabbitmq'
+    scrape_interval: 30s
+    scrape_timeout: 30s
+    metrics_path: '/api/metrics'
+    static_configs: 
+      - targets: ['rabbitmq.mystack:15672', 'mystack_rabbitmq:15672', 'rabbitmq:15672']

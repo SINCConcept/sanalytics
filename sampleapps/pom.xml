@@ -11,5 +11,6 @@
   	<module>mqtt-client</module>
   	<module>sensor</module>
   	<module>cep</module>
+  	<module>bridge</module>
   </modules>
 </project>

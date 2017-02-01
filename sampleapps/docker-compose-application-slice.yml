@@ -19,11 +19,17 @@ services:
       - app_overlay
       
   rabbitmq: 
-    image: rabbitmq:3.6.6-management-alpine
+    image: cproinger/rabbitmq-management-monitoring
+    deploy: 
+      resources: 
+        limits: 
+          memory: 120M
     ports: 
       - "5672:5672"
       - "15672:15672"      
-
+    networks:
+      - app_overlay   
+      
   cep:
     depends_on:
       - mymongodb
