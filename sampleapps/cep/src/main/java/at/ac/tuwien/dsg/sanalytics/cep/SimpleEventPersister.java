@@ -6,6 +6,8 @@ import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.stereotype.Component;
 
+import at.ac.tuwien.dsg.sanalytics.events.RandomCount;
+
 @Component
 @Profile("rabbitmq")
 public class SimpleEventPersister {

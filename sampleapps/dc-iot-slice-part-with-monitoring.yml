@@ -1,0 +1,94 @@
+version: "3"
+services:
+
+# ---------- application services ---------------
+  
+  mqtt:
+    image: toke/mosquitto:release-1.4.10-2
+    deploy: 
+      resources: 
+        limits: 
+          memory: 10M
+    ports:
+      - "1884:1883"
+    networks:
+      - iot_overlay      
+    
+  sensor:
+    depends_on:
+      - mqtt
+    image: cproinger/sample-sensor
+    deploy: 
+      resources: 
+        limits: 
+          memory: 128M
+    networks:
+      - iot_overlay
+    environment: 
+      - JAVA_OPTS=-Xmx16m  -Dmqtt.brokerURL=tcp://iotstack_mqtt:1883     
+      
+  iot2nfvBridge:
+    depends_on:
+      - mqtt
+    image: cproinger/sample-bridge
+    deploy: 
+      resources: 
+        limits: 
+          memory: 128M
+    networks:
+      - iot_overlay
+      - nfvstack_app_overlay
+    environment: 
+      - JAVA_OPTS=-Xmx100m -Dspring.profiles.active=inbound-mqtt,forwarder,outbound-mqtt -Dinbound-mqtt.brokerURL=tcp://iotstack_mqtt:1883 -Doutbound-mqtt.brokerURL=tcp://nfvstack_mqtt:1883      
+
+# ---------- monitoring services ---------------
+    
+  iot_prometheus:
+    #docker service create -p 9090:9090 --mount type=bind,source=/mastergit/sanalytics/sampleapps/prom/prometheus.yml,target=/etc/prometheus/prometheus.yml --name=prometheus --network="custom_monitoring" --network="mystack_app_overlay" --env INFLUXDB_PW=password --container-label sanalytics.slice="slice0" prom/prometheus -config.file=/etc/prometheus/prometheus.yml -storage.local.path=/prometheus -web.console.libraries=/etc/prometheus/console_libraries -web.console.templates=/etc/prometheus/consoles -storage.remote.influxdb-url http://influx:8086 -storage.remote.influxdb.database mytestdb -storage.remote.influxdb.retention-policy "autogen" -storage.remote.influxdb.username username 
+    image: prom/prometheus
+    ports: 
+      - "9092:9090"  
+    volumes: 
+      - /mastergit/sanalytics/sampleapps/prom/:/etc/prometheus/
+      #- /mastergit/sanalytics/sampleapps/prom/sample.rules:/etc/prometheus/sample.rules
+    networks:
+      - iot_overlay
+      - monitoring_overlay
+      - cloudstack_monitoring_overlay
+    depends_on: 
+    # these do not need to be defined regarding DNS resolution of the names (just if you are wondering)
+      - filter-proxy
+      - iot2nfvBridge
+    command: 
+      - -config.file=/etc/prometheus/prometheus-iot.yml
+      - -storage.local.path=/prometheus
+      - -web.console.libraries=/etc/prometheus/console_libraries
+      - -web.console.templates=/etc/prometheus/consoles  
+      - -storage.remote.influxdb-url=http://influx:8086 
+      - -storage.remote.influxdb.database=mytestdb 
+      - -storage.remote.influxdb.retention-policy=autogen 
+      - -storage.remote.influxdb.username=username      
+    environment: 
+      - INFLUXDB_PW=password
+    
+  filter-proxy:
+    image: cproinger/sanalytics-filter-proxy
+    ports: 
+      - "8280:8080"  
+    networks:
+      - monitoring_overlay
+      - custom_monitoring
+    depends_on: 
+      - cadvisor
+    environment: 
+      - JAVA_OPTS=-Xmx256m -Dsanalytics.slice.label=container_label_com_docker_stack_namespace -Dtarget.dnsname=tasks.cadvisor
+    
+networks:
+  iot_overlay: 
+  monitoring_overlay:
+  cloudstack_monitoring_overlay:
+    external: true    
+  nfvstack_app_overlay:
+    external: true 
+  custom_monitoring:
+    external: true

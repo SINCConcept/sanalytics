@@ -1,0 +1,1 @@
+container_memory_percent=container_memory_usage_bytes / container_spec_memory_limit_bytes

@@ -1,10 +1,8 @@
-package at.ac.tuwien.dsg.sanalytics.cep;
+package at.ac.tuwien.dsg.sanalytics.bridge.esper;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
-import org.springframework.integration.annotation.ServiceActivator;
-import org.springframework.messaging.Message;
 
 import com.espertech.esper.client.EPAdministrator;
 import com.espertech.esper.client.EPRuntime;
@@ -14,7 +12,7 @@ import com.espertech.esper.client.EPServiceProviderManager;
 import at.ac.tuwien.dsg.sanalytics.events.RandomCount;
 
 @Configuration
-@Profile({"default", "mqtt"})
+@Profile({"esper-cep"})
 public class EsperConfig {
 
 	@Bean
@@ -34,13 +32,5 @@ public class EsperConfig {
 	@Bean
 	public EPRuntime cepRT() {
 		return cepServiceProvider().getEPRuntime();
-	}
-
-	@ServiceActivator(inputChannel = "inputChannel")
-	public void process(Message<?> message) {
-		Metrics.MESSAGES.inc();
-		System.out.println("message: " + message);
-		Long cnt = Long.valueOf(message.getPayload().toString());
-		cepRT().sendEvent(new RandomCount(cnt, message.getHeaders().getTimestamp()));
 	}
 }

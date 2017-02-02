@@ -13,6 +13,8 @@ import com.espertech.esper.client.EPStatement;
 import com.espertech.esper.client.EventBean;
 import com.espertech.esper.client.UpdateListener;
 
+import at.ac.tuwien.dsg.sanalytics.events.RandomCount;
+
 @Component
 @Profile({"default", "mqtt"})
 public class RandomCountAnalyzer {

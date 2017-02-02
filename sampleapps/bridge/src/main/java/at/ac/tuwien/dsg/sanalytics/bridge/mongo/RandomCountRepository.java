@@ -1,4 +1,4 @@
-package at.ac.tuwien.dsg.sanalytics.cep;
+package at.ac.tuwien.dsg.sanalytics.bridge.mongo;
 
 import org.springframework.data.mongodb.repository.MongoRepository;
 

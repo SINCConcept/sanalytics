@@ -1,10 +1,13 @@
-package at.ac.tuwien.dsg.sanalytics.cep;
+package at.ac.tuwien.dsg.sanalytics.events;
 
+import java.io.Serializable;
 import java.util.Date;
 
 import org.springframework.data.annotation.Id;
 
-public class RandomCount {
+public class RandomCount implements Serializable {
+
+	private static final long serialVersionUID = 1L;
 
 	@Id
 	private String id;

@@ -1,1 +1,1 @@
- docker build -t cproinger/sample-cep .
+ docker build -t cproinger/sample-bridge .

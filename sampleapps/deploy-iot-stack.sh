@@ -1,0 +1,1 @@
+docker stack deploy --compose-file dc-iot-slice-part-with-monitoring.yml iotstack

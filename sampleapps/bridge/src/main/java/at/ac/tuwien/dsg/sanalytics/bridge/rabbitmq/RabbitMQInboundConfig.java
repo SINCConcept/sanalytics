@@ -5,6 +5,8 @@ import org.springframework.amqp.rabbit.annotation.EnableRabbit;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
+import org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
@@ -16,6 +18,7 @@ import org.springframework.messaging.MessageChannel;
 @Configuration
 @EnableRabbit
 @Profile("inbound-rabbitmq")
+@ImportAutoConfiguration(RabbitAutoConfiguration.class)
 public class RabbitMQInboundConfig {
 
 	@Value("${inbound-rabbitmq.queue:events}")
@@ -31,8 +34,8 @@ public class RabbitMQInboundConfig {
 			@Qualifier("inboundChannel") MessageChannel channel) {
 
 		return IntegrationFlows
-				.from(Amqp.inboundAdapter(connectionFactory, queueName)).
-				channel(channel)
+				.from(Amqp.inboundAdapter(connectionFactory, queueName))
+				.channel(channel)
 				.get();
 	}
 

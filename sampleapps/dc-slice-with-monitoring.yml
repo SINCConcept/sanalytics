@@ -1,0 +1,151 @@
+version: "3"
+services:
+
+# ---------- application services ---------------
+
+  mymongodb:
+    image: cproinger/mongo-with-prom-exporter
+    #image: mongo:3.4.1
+    #bug https://github.com/docker/docker/issues/30297
+    #lables: 
+    #  sanalytics.slice: "slice0"
+    deploy:
+    #  labels:
+    #    sanalytics.slice: "slice0"
+      resources: 
+        limits: 
+          memory: 200M
+    ports:
+      - "27017:27017"
+    networks:
+      - app_overlay
+      
+  rabbitmq: 
+    image: cproinger/rabbitmq-management-monitoring
+    deploy: 
+      resources: 
+        limits: 
+          memory: 120M
+    ports: 
+      - "5672:5672"
+      - "15672:15672"      
+    networks:
+      - app_overlay   
+      
+  cep:
+    depends_on:
+      - mymongodb
+      - mqtt
+    image: cproinger/sample-cep
+    deploy: 
+      resources: 
+        limits: 
+          memory: 200M
+    ports:
+      - "8081:8080"
+    networks:
+      - app_overlay      
+    
+  mqtt:
+    image: toke/mosquitto:release-1.4.10-2
+    deploy: 
+      resources: 
+        limits: 
+          memory: 10M
+    ports:
+      - "1883:1883"
+    networks:
+      - app_overlay      
+    
+  sensor:
+    depends_on:
+      - mqtt
+    image: cproinger/sample-sensor
+    deploy: 
+      resources: 
+        limits: 
+          memory: 128M
+    networks:
+      - app_overlay
+    environment: 
+      - JAVA_OPTS=-Xmx16m  -Dmqtt.brokerURL=tcp://mqtt:1883     
+
+# ---------- monitoring services ---------------
+    
+  prometheus:
+    #docker service create -p 9090:9090 --mount type=bind,source=/mastergit/sanalytics/sampleapps/prom/prometheus.yml,target=/etc/prometheus/prometheus.yml --name=prometheus --network="custom_monitoring" --network="mystack_app_overlay" --env INFLUXDB_PW=password --container-label sanalytics.slice="slice0" prom/prometheus -config.file=/etc/prometheus/prometheus.yml -storage.local.path=/prometheus -web.console.libraries=/etc/prometheus/console_libraries -web.console.templates=/etc/prometheus/consoles -storage.remote.influxdb-url http://influx:8086 -storage.remote.influxdb.database mytestdb -storage.remote.influxdb.retention-policy "autogen" -storage.remote.influxdb.username username 
+    image: prom/prometheus
+    ports: 
+      - "9090:9090"  
+    volumes: 
+      - /mastergit/sanalytics/sampleapps/prom/:/etc/prometheus/
+      #- /mastergit/sanalytics/sampleapps/prom/sample.rules:/etc/prometheus/sample.rules
+    networks:
+      - app_overlay
+      - monitoring_overlay
+    depends_on: 
+    # these do not need to be defined regarding DNS resolution of the names (just if you are wondering)
+      - filter-proxy
+      - mymongodb
+      - cep
+      - rabbitmq
+      - influx
+    command: 
+      - -config.file=/etc/prometheus/prometheus.yml
+      - -storage.local.path=/prometheus
+      - -web.console.libraries=/etc/prometheus/console_libraries
+      - -web.console.templates=/etc/prometheus/consoles  
+      - -storage.remote.influxdb-url=http://influx:8086 
+      - -storage.remote.influxdb.database=mytestdb 
+      - -storage.remote.influxdb.retention-policy=autogen 
+      - -storage.remote.influxdb.username=username      
+    environment: 
+      - INFLUXDB_PW=password
+    
+  filter-proxy:
+    image: cproinger/sanalytics-filter-proxy
+    ports: 
+      - "8080:8080"  
+    networks:
+      - monitoring_overlay
+      - custom_monitoring
+    depends_on: 
+      - cadvisor
+    environment: 
+      - JAVA_OPTS=-Xmx256m -Dsanalytics.slice.label=container_label_com_docker_stack_namespace -Dtarget.dnsname=tasks.cadvisor
+
+#docker service create -p 8083:8083 -p 8086:8086  --network="custom_monitoring" --name influx 
+# --mount type=bind,source=/c/Users/cproinger/Documents/Docker/test_data/influxdb,target=/influx_test_data  
+# --mount type=bind,source=/c/Users/cproinger/Documents/Docker/influx,target=/var/lib/influxdb --container-label sanalytics.slice="slice0" influxdb:1.1.0
+  influx: 
+    image: influxdb:1.1.0
+    ports: 
+      - "8083:8083"
+      - "8086:8086" 
+    volumes: 
+      - /c/Users/cproinger/Documents/Docker/influx:/var/lib/influxdb
+    networks:
+        - monitoring_overlay    
+
+#docker service create \
+#  -p 3000:3000 \
+#  --network="custom_monitoring" \
+#  --name grafana \
+#  --container-label sanalytics.slice="slice0" \
+#  grafana/grafana    
+  grafana: 
+    image: grafana/grafana
+    depends_on: 
+      - influx
+    ports: 
+      - "3000:3000"
+    volumes: 
+      - /c/Users/cproinger/Documents/Docker/grafana:/var/lib/grafana
+    networks: 
+      - monitoring_overlay      
+    
+networks:
+  app_overlay: 
+  monitoring_overlay: 
+  custom_monitoring:
+    external: true
