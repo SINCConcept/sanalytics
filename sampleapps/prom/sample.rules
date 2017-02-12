@@ -1,3 +1,13 @@
+# ========= Services ==========
+
+# here we can define services, or limits for services, as meta-data
+
+sla_service_up{cl_cd_swarm_service_name="cloudstack_rabbitmq",cl_cd_stack_namespace="cloudstack"}=1.0
+sla_service_up{cl_cd_swarm_service_name="cloudstack_mymongodb",cl_cd_stack_namespace="cloudstack"}=1.0
+# here i could say for example, an availability of 0,7 is totally ok
+# since the messages will be collected eventually 
+sla_service_up{cl_cd_swarm_service_name="cloudstack_rabbit2mongo",cl_cd_stack_namespace="cloudstack"}=0.7
+
 # ========= RAM, JVM-Memory ==============
 
 container_memory_percent=container_memory_usage_bytes / container_spec_memory_limit_bytes
@@ -42,3 +52,38 @@ container_network_transmit_bytes_percent=rate(container_network_transmit_bytes_s
 
 container_network_receive_bytes_sumtotal=sum(container_network_receive_bytes_total) by (cl_cd_stack_namespace, cl_cd_swarm_service_name)
 container_network_receive_bytes_percent=rate(container_network_receive_bytes_sumtotal[2m])  / ignoring(cl_cd_swarm_service_name)  group_left(cl_cd_stack_namespace) slice_network_limit_bytespersecond
+
+# ======= Availability ===============
+
+# we need to round otherwise there can be values like 0.99999993434 because 
+#	same with clamp_max. 
+# internally double is used. 
+# this gives us the availability on an _instance level_
+instance_availability_1min=clamp_max(round(rate(container_last_seen[1m]), 0.0009), 1.0)
+instance_availability_5min=clamp_max(round(rate(container_last_seen[5m]), 0.0009), 1.0)
+instance_availability_15min=clamp_max(round(rate(container_last_seen[15m]), 0.0009), 1.0)
+instance_availability_60min=clamp_max(round(rate(container_last_seen[60m]), 0.0009), 1.0)
+
+# on the _sub-slice level_ we must consider that some services may
+# be run in replicated mode, so there is more than one instance and
+# as long as 1 instance (or maybe a specified number of instances)
+# is in service it is available
+service_availability_1m=sum(instance_availability_1min) by (cl_cd_swarm_service_name, cl_cd_stack_namespace)
+service_availability_5m=sum(instance_availability_5min) by (cl_cd_swarm_service_name, cl_cd_stack_namespace)
+service_availability_15m=sum(instance_availability_15min) by (cl_cd_swarm_service_name, cl_cd_stack_namespace)
+service_availability_60m=sum(instance_availability_60min) by (cl_cd_swarm_service_name, cl_cd_stack_namespace)
+
+# finally we compare the sla with the availability
+# so we get 0.0s for services which are down
+service_slaavailability_1m=clamp_max(service_availability_1m /  ignoring(cl_cd_stack_namespace) group_right(cl_cd_swarm_service_name) sla_service_up, 1) or (sla_service_up-sla_service_up)
+service_slaavailability_5m=clamp_max(service_availability_5m /  ignoring(cl_cd_stack_namespace) group_right(cl_cd_swarm_service_name) sla_service_up, 1) or (sla_service_up-sla_service_up)
+service_slaavailability_15m=clamp_max(service_availability_15m /  ignoring(cl_cd_stack_namespace) group_right(cl_cd_swarm_service_name) sla_service_up, 1) or (sla_service_up-sla_service_up)
+service_slaavailability_60m=clamp_max(service_availability_60m /  ignoring(cl_cd_stack_namespace) group_right(cl_cd_swarm_service_name) sla_service_up, 1) or (sla_service_up-sla_service_up)
+
+# on the _sub-slice_ we can group by the stack (or env) and use min() to determine the health
+# same on the _full slice_
+# other options ??? 
+
+# === Application Metrics ===
+#The following example expression returns the difference in CPU temperature between now and 2 hours ago
+#delta(cpu_temp_celsius{host="zeus"}[2h])

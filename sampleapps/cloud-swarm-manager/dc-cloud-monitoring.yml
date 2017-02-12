@@ -1,0 +1,103 @@
+version: "3"
+services:
+
+# ---------- monitoring services ---------------
+    
+  prometheus:
+    #docker service create -p 9090:9090 --mount type=bind,source=/mastergit/sanalytics/sampleapps/prom/prometheus.yml,target=/etc/prometheus/prometheus.yml --name=prometheus --network="custom_monitoring" --network="mystack_app_overlay" --env INFLUXDB_PW=password --container-label sanalytics.slice="slice0" prom/prometheus -config.file=/etc/prometheus/prometheus.yml -storage.local.path=/prometheus -web.console.libraries=/etc/prometheus/console_libraries -web.console.templates=/etc/prometheus/consoles -storage.remote.influxdb-url http://influx:8086 -storage.remote.influxdb.database mytestdb -storage.remote.influxdb.retention-policy "autogen" -storage.remote.influxdb.username username 
+    image: prom/prometheus
+    deploy: 
+      resources: 
+        limits: 
+          memory: 180M
+          cpus: "1.0"
+    ports: 
+      - "9090:9090"  
+    volumes: 
+      - /home/docker-user/googlecloud/prom/:/etc/prometheus/
+      - /data/prom:/prometheus
+      #- /mastergit/sanalytics/sampleapps/prom/sample.rules:/etc/prometheus/sample.rules
+    networks:
+      - cloudstack_app_overlay
+      - monitoring_overlay
+    depends_on: 
+    # these do not need to be defined regarding DNS resolution of the names (just if you are wondering)
+      - filter-proxy
+      - mymongodb
+      - rabbitmq
+      - influx
+    command: 
+      - -config.file=/etc/prometheus/prometheus-cloud.yml
+      - -storage.local.path=/prometheus
+      - -web.console.libraries=/etc/prometheus/console_libraries
+      - -web.console.templates=/etc/prometheus/consoles  
+      - -storage.remote.influxdb-url=http://influx:8086 
+      - -storage.remote.influxdb.database=mytestdb 
+      - -storage.remote.influxdb.retention-policy=autogen 
+      - -storage.remote.influxdb.username=username      
+    environment: 
+      - INFLUXDB_PW=password
+    
+  filter-proxy:
+    image: cproinger/sanalytics-filter-proxy
+    deploy: 
+      resources: 
+        limits: 
+          memory: 140M
+          cpus: "1.0"
+    ports: 
+      - "8080:8080"  
+    networks:
+      - platform_overlay
+      - monitoring_overlay         
+    depends_on: 
+      - cadvisor
+    environment: 
+      - JAVA_OPTS=-server -Xmx100m -XX:MaxMetaspaceSize=32m -Dsanalytics.slice.label=container_label_com_docker_stack_namespace -Dtarget.dnsname=tasks.cadvisor
+
+#docker service create -p 8083:8083 -p 8086:8086  --network="custom_monitoring" --name influx 
+# --mount type=bind,source=/c/Users/cproinger/Documents/Docker/test_data/influxdb,target=/influx_test_data  
+# --mount type=bind,source=/c/Users/cproinger/Documents/Docker/influx,target=/var/lib/influxdb --container-label sanalytics.slice="slice0" influxdb:1.1.0
+  influx: 
+    image: influxdb:1.1.0
+    deploy: 
+      resources: 
+        limits: 
+          memory: 400M
+          cpus: "1.0"    
+    ports: 
+      - "8083:8083"
+      - "8086:8086" 
+    volumes: 
+      - /data/influx:/var/lib/influxdb
+    networks:
+        - monitoring_overlay    
+
+#docker service create \
+#  -p 3000:3000 \
+#  --network="custom_monitoring" \
+#  --name grafana \
+#  --container-label sanalytics.slice="slice0" \
+#  grafana/grafana    
+  grafana: 
+    image: grafana/grafana
+    deploy: 
+      resources: 
+        limits: 
+          memory: 180M
+          cpus: "1.0"    
+    depends_on: 
+      - influx
+    ports: 
+      - "3000:3000"
+    volumes: 
+      - /data/grafana:/var/lib/grafana
+    networks: 
+      - monitoring_overlay      
+    
+networks:
+  cloudstack_app_overlay:
+    external: true 
+  monitoring_overlay: 
+  platform_overlay:
+    external: true
