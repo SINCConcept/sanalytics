@@ -12,13 +12,14 @@ services:
       resources: 
         limits: 
           memory: 180M
+          cpus: "0.1"
     ports:
       - "8082:8080"
     networks:
       - app_overlay  
       - cloudstack_app_overlay 
     environment: 
-      - JAVA_OPTS=-Xmx100m -Dspring.profiles.active=inbound-mqtt,esper-cep,outbound-rabbitmq -Dinbound-mqtt.brokerURL=tcp://nfvstack_mqtt:1883 -Dinbound-mqtt.subscriptions=sensor/+/randomcount -Dspring.rabbitmq.host=cloudstack_rabbitmq -Dspring.rabbitmq.username=guest -Dspring.rabbitmq.password=guest
+      - JAVA_OPTS=-server -Xmx100m -XX:MaxMetaspaceSize=64m -Dspring.profiles.active=inbound-mqtt,esper-cep,outbound-rabbitmq -Dinbound-mqtt.brokerURL=tcp://nfvstack_mqtt:1883 -Dinbound-mqtt.subscriptions=sensor/+/randomcount -Dspring.rabbitmq.host=cloudstack_rabbitmq -Dspring.rabbitmq.username=guest -Dspring.rabbitmq.password=guest
     
     
   mqtt:
@@ -27,6 +28,7 @@ services:
       resources: 
         limits: 
           memory: 10M
+          cpus: "0.5"          
     ports:
       - "1883:1883"
     networks:
@@ -41,6 +43,7 @@ services:
       - "9091:9090"  
     volumes: 
       - /mastergit/sanalytics/sampleapps/prom/:/etc/prometheus/
+      - /c/Users/cproinger/Documents/Docker/prom/nfv:/prometheus      
       #- /mastergit/sanalytics/sampleapps/prom/sample.rules:/etc/prometheus/sample.rules
     networks:
       - app_overlay
@@ -70,7 +73,7 @@ services:
       - "8180:8080"  
     networks:
       - monitoring_overlay
-      - custom_monitoring
+      - platform_overlay
     depends_on: 
       - cadvisor
     environment: 
@@ -79,7 +82,7 @@ services:
 networks:
   app_overlay: 
   monitoring_overlay: 
-  custom_monitoring:
+  platform_overlay:
     external: true
   cloudstack_monitoring_overlay:
     external: true    

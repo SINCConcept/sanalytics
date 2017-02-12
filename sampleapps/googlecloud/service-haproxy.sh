@@ -1,0 +1,1 @@
+docker service create --name haproxy -p 80:80 --network=platform_overlay --network=cloudstack_monitoring_overlay --network=cloudstack_app_overlay --mount type=bind,source=/mastergit/sanalytics/sampleapps/googlecloud/haproxy.cfg,target=/usr/local/etc/haproxy/haproxy.cfg haproxy

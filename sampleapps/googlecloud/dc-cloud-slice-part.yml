@@ -1,0 +1,55 @@
+version: "3"
+services:
+
+# ---------- application services ---------------
+
+  mymongodb:
+    image: cproinger/mongo-with-prom-exporter
+    #image: mongo:3.4.1
+    #bug https://github.com/docker/docker/issues/30297
+    #lables: 
+    #  sanalytics.slice: "slice0"
+    deploy:
+    #  labels:
+    #    sanalytics.slice: "slice0"
+      resources: 
+        limits: 
+          memory: 200M
+          cpus: "0.25"
+    ports:
+      - "27017:27017"
+    networks:
+      - app_overlay
+      
+  rabbitmq: 
+    image: cproinger/rabbitmq-management-monitoring
+    deploy: 
+      resources: 
+        limits: 
+          memory: 120M
+          cpus: "0.25"
+    ports: 
+      - "5672:5672"
+      - "15672:15672"      
+    networks:
+      - app_overlay   
+      
+  rabbit2mongo:
+    depends_on:
+      - mymongodb
+      - mqtt
+    image: cproinger/sample-bridge
+    deploy: 
+      resources: 
+        limits: 
+          memory: 180M
+          cpus: "0.25"
+    ports:
+      - "8081:8080"
+    networks:
+      - app_overlay   
+    environment: 
+      - JAVA_OPTS=-server -Xmx100m -XX:MaxMetaspaceSize=64m -Dspring.profiles.active=inbound-rabbitmq,forwarder,outbound-mongo -Dspring.rabbitmq.host=rabbitmq -Dspring.rabbitmq.username=guest -Dspring.rabbitmq.password=guest -Dspring.data.mongodb.uri=mongodb://mymongodb:27017/events   
+    
+networks:
+  app_overlay: 

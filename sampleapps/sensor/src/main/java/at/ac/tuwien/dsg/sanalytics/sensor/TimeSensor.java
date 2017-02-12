@@ -22,7 +22,7 @@ public class TimeSensor {
 	@Autowired
 	private TimeMqttTopicGateway gateway;
 	
-	@Scheduled(fixedDelay = 10_000)
+	@Scheduled(fixedRateString = "${sensor.time.fixedRate:10000}")
 	public void sendTime() {
 		gateway.sendToMqtt(System.currentTimeMillis()+"");
 	}

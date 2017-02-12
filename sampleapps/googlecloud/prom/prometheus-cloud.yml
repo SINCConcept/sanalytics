@@ -20,7 +20,7 @@ scrape_configs:
     # scheme defaults to 'http'.
     metrics_path: '/metrics/cloudstack'
     static_configs:
-      - targets: ['cloudstack_filter-proxy:8080']
+      - targets: ['cloudmonstack_filter-proxy:8080']
     metric_relabel_configs: 
     - regex: 'container_label_com_docker_(.*)'
       action: labelmap

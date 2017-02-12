@@ -13,6 +13,11 @@ scrape_configs:
     metrics_path: '/metrics/nfvstack'
     static_configs:
       - targets: ['nfvstack_filter-proxy:8080']
+    metric_relabel_configs: 
+    - regex: 'container_label_com_docker_(.*)'
+      action: labelmap
+      replacement: 'cl_cd_${1}'
+            
 
   # The job name is added as a label `job=<job_name>` to any timeseries scraped from this config.
   - job_name: 'cep'
