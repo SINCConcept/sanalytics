@@ -1,0 +1,1 @@
+docker service create --network=platform_overlay --publish 8080:8080 -e JAVA_OPTS="-Xmx256m -Dsanalytics.slice.label=container_label_com_docker_stack_namespace  -Dtarget.dnsname=tasks.cadvisor" --name filter-proxy cproinger/rpi-sanalytics-filter-proxy

@@ -1,0 +1,40 @@
+version: "3"
+services:
+
+# ---------- monitoring services ---------------
+    
+  prometheus:
+    #docker service create -p 9090:9090 --mount type=bind,source=/mastergit/sanalytics/sampleapps/prom/prometheus.yml,target=/etc/prometheus/prometheus.yml --name=prometheus --network="custom_monitoring" --network="mystack_app_overlay" --env INFLUXDB_PW=password --container-label sanalytics.slice="slice0" prom/prometheus -config.file=/etc/prometheus/prometheus.yml -storage.local.path=/prometheus -web.console.libraries=/etc/prometheus/console_libraries -web.console.templates=/etc/prometheus/consoles -storage.remote.influxdb-url http://influx:8086 -storage.remote.influxdb.database mytestdb -storage.remote.influxdb.retention-policy "autogen" -storage.remote.influxdb.username username 
+    image: cproinger/rpi-prometheus
+    ports: 
+      - "9091:9090"  
+    volumes: 
+      - /home/pi/cproinger/configs/prom:/etc/prometheus/
+      - /home/pi/cproinger/data/prom-nfv-data:/prometheus      
+      #- /mastergit/sanalytics/sampleapps/prom/sample.rules:/etc/prometheus/sample.rules
+    networks:
+      - nfvstack_app_overlay
+      - platform_overlay
+    depends_on: 
+    # these do not need to be defined regarding DNS resolution of the names (just if you are wondering)
+      - filter-proxy
+      - cep
+    command: 
+      - -config.file=/etc/prometheus/prometheus-nfv.yml
+      - -storage.local.path=/prometheus
+      - -web.console.libraries=/etc/prometheus/console_libraries
+      - -web.console.templates=/etc/prometheus/consoles
+      #- -storage.remote.influxdb-url=http://influx:8086 -> invalid URL ??? WTF!
+      # *banging head against table* -> https://github.com/prometheus/prometheus/issues/2022  
+      - -storage.remote.influxdb-url=http://104.199.110.214:8086 
+      - -storage.remote.influxdb.database=mytestdb 
+      - -storage.remote.influxdb.retention-policy=autogen 
+      - -storage.remote.influxdb.username=username      
+    environment: 
+      - INFLUXDB_PW=password
+    
+networks:
+  nfvstack_app_overlay: 
+    external: true
+  platform_overlay:
+    external: true

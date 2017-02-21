@@ -1,0 +1,1 @@
+ docker build -t cproinger/rpi-sample-sensor .

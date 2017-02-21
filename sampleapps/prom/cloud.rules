@@ -1,0 +1,9 @@
+# ========= Services ==========
+
+# here we can define services, or limits for services, as meta-data
+
+sla_service_up{cl_cd_swarm_service_name="cloudstack_rabbitmq",cl_cd_stack_namespace="cloudstack"}=1.0
+sla_service_up{cl_cd_swarm_service_name="cloudstack_mymongodb",cl_cd_stack_namespace="cloudstack"}=1.0
+# here i could say for example, an availability of 0,7 is totally ok
+# since the messages will be collected eventually 
+sla_service_up{cl_cd_swarm_service_name="cloudstack_rabbit2mongo",cl_cd_stack_namespace="cloudstack"}=2.0

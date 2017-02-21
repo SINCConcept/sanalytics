@@ -1,0 +1,25 @@
+version: "3"
+services:
+
+
+# ---------- monitoring services ---------------
+
+# cadvisor should be defined in this file as well but there is a bug
+# with the global mode    
+    
+  filter-proxy:
+    image: cproinger/sanalytics-filter-proxy
+    ports: 
+      - "8180:8080"  
+    networks:
+      - platform_overlay
+      - monitoring_overlay
+    depends_on: 
+      - cadvisor
+    environment: 
+      - JAVA_OPTS=-Xmx256m -Dsanalytics.slice.label=container_label_com_docker_stack_namespace -Dtarget.dnsname=tasks.cadvisor    
+    
+networks: 
+  monitoring_overlay: 
+  platform_overlay:
+    external: true     

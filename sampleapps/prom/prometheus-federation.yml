@@ -1,0 +1,19 @@
+- job_name: 'federate'
+  scrape_interval: 15s
+
+  honor_labels: true
+  metrics_path: '/federate'
+
+#this gives me the container_last_seen metrics for example
+#http://192.168.99.100:9090/federate?match[]=container_last_seen
+
+  params:
+    'match[]':
+      - '{job="prometheus"}'
+      - '{__name__=~"job:.*"}'
+
+  static_configs:
+    - targets:
+      - 'source-prometheus-1:9090'
+      - 'source-prometheus-2:9090'
+      - 'source-prometheus-3:9090'

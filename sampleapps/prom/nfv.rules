@@ -1,0 +1,6 @@
+# ========= Services ==========
+
+# here we can define services, or limits for services, as meta-data
+
+sla_service_up{cl_cd_swarm_service_name="nfvstack_mqtt",cl_cd_stack_namespace="nfvstack"}=1.0
+sla_service_up{cl_cd_swarm_service_name="nfvstack_cep",cl_cd_stack_namespace="nfvstack"}=1.0
