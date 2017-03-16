@@ -30,6 +30,8 @@ import io.prometheus.client.Metrics.Summary;
 
 public class MetricsSliceFilterServlet extends HttpServlet {
 
+	private static final String CADVISOR = System.getProperty("metricsBackend.dnsName", "cadvisor");
+
 	private static final String PROMETHEUS_PROTOBUF_ACCEPT_HEADER = "application/vnd.google.protobuf";
 
 	private final static class MetricsRequestFilter {
@@ -110,7 +112,7 @@ public class MetricsSliceFilterServlet extends HttpServlet {
 		MetricsRequestFilter sliceFilter = createSliceFilter(req);
 		
 		
-		MetricsResponse mr = dnsLookup.getAllAddresses("cadvisor")
+		MetricsResponse mr = dnsLookup.getAllAddresses(CADVISOR)
 			.parallelStream()
 			.map(a -> sliceFilter.callMetricsEndpoint(a))
 			.reduce(MetricsResponse.createEmpty(), (a,b) -> a.mergeWith(b));

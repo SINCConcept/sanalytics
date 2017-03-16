@@ -17,6 +17,9 @@ container_cpu_period_percent=container_cpu_cfs_periods_total / container_spec_cp
 
 # ======== Disk ==========================
 
+warn_container_fs_bytes_left_prediction_minutes = 60
+container_fs_bytes_left_inWarnLimitMins=container_fs_limit_bytes - predict_linear(container_fs_usage_bytes[1h], 60*scalar(warn_container_fs_bytes_left_prediction_minutes))
+
 #container disk storage predicted in 4 hours
 container_fs_bytes_left_in4h=container_fs_limit_bytes - predict_linear(container_fs_usage_bytes[1h], 60*60*4)
 
@@ -46,42 +49,18 @@ container_network_receive_bytes_percent=rate(container_network_receive_bytes_sum
 
 # ======= Availability ===============
 
-# it would of course also be possible to use the up-metric for jobs
 
-# we need to round otherwise there can be values like 0.99999993434 because 
-#	same with clamp_max. 
-# internally double is used. 
-# this gives us the availability on an _instance level_
-# we could add a parameter for the maximum "latency" of the container_last_seen
-# value so we achieve 1.0 even if the response takes a little time (e.g. 100 ms). 
-instance_availability_2min=clamp_max(rate(container_last_seen[2m]), 1.0)
-instance_availability_5min=clamp_max(rate(container_last_seen[5m]), 1.0)
-instance_availability_15min=clamp_max(rate(container_last_seen[15m]), 1.0)
-instance_availability_60min=clamp_max(rate(container_last_seen[60m]), 1.0)
+service_up = sum(up) by (job) or (target_service_up * 0)
+sla_service_up = service_up / target_service_up 
 
-# on the _sub-slice level_ we must consider that some services may
-# be run in replicated mode, so there is more than one instance and
-# as long as 1 instance (or maybe a specified number of instances)
-# is in service it is available
-service_availability_2m=sum(instance_availability_2min) by (cl_cd_swarm_service_name, cl_cd_stack_namespace)
-service_availability_5m=sum(instance_availability_5min) by (cl_cd_swarm_service_name, cl_cd_stack_namespace)
-service_availability_15m=sum(instance_availability_15min) by (cl_cd_swarm_service_name, cl_cd_stack_namespace)
-service_availability_60m=sum(instance_availability_60min) by (cl_cd_swarm_service_name, cl_cd_stack_namespace)
+# FALLBACK if we do not have up metrics because the service does not have 
+# a metric endpoint: 
+# 	we consider the container up if the difference between last seen and now 
+# 	is smaller than a max response-time (we cloud make that even configurable -> scalar(x)). 
+container_up = (time() - container_last_seen) <bool 100
+servicecontainer_up=sum(container_up) by (cl_cd_swarm_service_name) or (target_servicecontainer_up * 0)
+sla_servicecontainer_up = servicecontainer_up / target_servicecontainers
 
-# finally we compare the sla with the availability
-# so we get 0.0s for services which are down
-service_slaavailability_2m=clamp_max(service_availability_2m /  ignoring(cl_cd_stack_namespace) group_right(cl_cd_swarm_service_name) sla_service_up, 1) or (sla_service_up-sla_service_up)
-service_slaavailability_5m=clamp_max(service_availability_5m /  ignoring(cl_cd_stack_namespace) group_right(cl_cd_swarm_service_name) sla_service_up, 1) or (sla_service_up-sla_service_up)
-service_slaavailability_15m=clamp_max(service_availability_15m /  ignoring(cl_cd_stack_namespace) group_right(cl_cd_swarm_service_name) sla_service_up, 1) or (sla_service_up-sla_service_up)
-service_slaavailability_60m=clamp_max(service_availability_60m /  ignoring(cl_cd_stack_namespace) group_right(cl_cd_swarm_service_name) sla_service_up, 1) or (sla_service_up-sla_service_up)
-
-# on the _sub-slice_ we can group by the stack (or env) and use min() to determine the health
-# same on the _full slice_ ... hm actually i'm not sure if that makes lots of sense
-# other options: <bool 0.95 to see if any SLAs are violated   
-service_slaavailability_2m_fullfilled=service_slaavailability_2m >bool 0.99
-service_slaavailability_5m_fullfilled=service_slaavailability_5m >bool 0.99
-service_slaavailability_15m_fullfilled=service_slaavailability_15m >bool 0.99
-service_slaavailability_60m_fullfilled=service_slaavailability_60m >bool 0.99
 
 # ======= Mean Time Between Failure or Mean Time to Repair =======
 

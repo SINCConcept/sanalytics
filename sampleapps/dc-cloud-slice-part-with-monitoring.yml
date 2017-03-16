@@ -110,7 +110,7 @@ services:
 # --mount type=bind,source=/c/Users/cproinger/Documents/Docker/test_data/influxdb,target=/influx_test_data  
 # --mount type=bind,source=/c/Users/cproinger/Documents/Docker/influx,target=/var/lib/influxdb --container-label sanalytics.slice="slice0" influxdb:1.1.0
   influx: 
-    image: influxdb:1.1.0
+    image: influxdb:1.2.2-alpine
     deploy: 
       resources: 
         limits: 
@@ -122,7 +122,9 @@ services:
     volumes: 
       - /c/Users/cproinger/Documents/Docker/influx:/var/lib/influxdb
     networks:
-        - monitoring_overlay    
+      - monitoring_overlay    
+    environment:
+      - INFLUXDB_ADMIN_ENABLED=true
 
 #docker service create \
 #  -p 3000:3000 \
@@ -131,7 +133,8 @@ services:
 #  --container-label sanalytics.slice="slice0" \
 #  grafana/grafana    
   grafana: 
-    image: grafana/grafana
+    #image: grafana/grafana
+    image: monitoringartist/grafana-xxl
     deploy: 
       resources: 
         limits: 
@@ -149,5 +152,7 @@ services:
 networks:
   app_overlay: 
   monitoring_overlay: 
+    labels: # does not help me much, i was hoping this would show up in the cadvisor metrics but no
+      - "at.ac.tuwien.dsg.analytics.net=monitoring_overlay"
   platform_overlay:
     external: true

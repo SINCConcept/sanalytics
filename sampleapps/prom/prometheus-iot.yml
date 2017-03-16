@@ -5,6 +5,7 @@ global:
     env: IoT
 
 rule_files: 
+  - /etc/prometheus/iot.rules 
   - /etc/prometheus/sample.rules
 
 scrape_configs:
