@@ -1,1 +1,1 @@
-docker stats $(docker ps --format={{.Names}}) --no-stream
+docker stats $(docker ps --format={{.Names}})

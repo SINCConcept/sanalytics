@@ -1,0 +1,1 @@
+docker service create --network=custom_monitoring --network=platform_overlay -p 9100:9100 --mode global --name nodex  --mount type=bind,source=/proc,target=/host/proc,readonly=false --mount type=bind,source=/sys,target=/host/sys,readonly=true --mount type=bind,source=/,target=/rootfs,readonly=true prom/node-exporter

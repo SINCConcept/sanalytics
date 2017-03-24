@@ -9,9 +9,9 @@ target_servicecontainers{cl_cd_swarm_service_name="cloudstack_mymongodb"}=1.0
 target_servicecontainers{cl_cd_swarm_service_name="cloudstack_rabbit2mongo"}=2.0
 
 # are containers completely absent? actually not needed see servicecontainer_up definition. 
-absent_servicecontainers{cl_cd_swarm_service_name="cloudstack_rabbitmq"} = absent(servicecontainer_up{cl_cd_swarm_service_name="cloudstack_rabbitmq"})
-absent_servicecontainers{cl_cd_swarm_service_name="cloudstack_mymongodb"} = absent(servicecontainer_up{cl_cd_swarm_service_name="cloudstack_mymongodb"})
-absent_servicecontainers{cl_cd_swarm_service_name="cloudstack_rabbit2mongo"} = absent(servicecontainer_up{cl_cd_swarm_service_name="cloudstack_rabbit2mongo"})
+#absent_servicecontainers{cl_cd_swarm_service_name="cloudstack_rabbitmq"} = absent(servicecontainer_up{cl_cd_swarm_service_name="cloudstack_rabbitmq"})
+#absent_servicecontainers{cl_cd_swarm_service_name="cloudstack_mymongodb"} = absent(servicecontainer_up{cl_cd_swarm_service_name="cloudstack_mymongodb"})
+#absent_servicecontainers{cl_cd_swarm_service_name="cloudstack_rabbit2mongo"} = absent(servicecontainer_up{cl_cd_swarm_service_name="cloudstack_rabbit2mongo"})
 
 #target_servicecontainers{cl_cd_swarm_service_name="cloudstack_mymongodb"}=1.0
 # here i could say for example, an availability of 0,7 is totally ok

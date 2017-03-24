@@ -1,4 +1,5 @@
-
+my_container_spec_cpus = container_spec_cpu_quota / 100000
+my_container_cpu_percent = (sum(rate(container_cpu_user_seconds_total[1m])) by (cl_cd_swarm_service_name, cl_cd_swarm_task_name)) / ignoring(cl_cd_swarm_service_name, cl_cd_swarm_task_name) group_left count(node_cpu{mode="system"})  * 100
 # ========= RAM, JVM-Memory ==============
 
 container_memory_percent=container_memory_usage_bytes / container_spec_memory_limit_bytes
@@ -58,7 +59,7 @@ sla_service_up = service_up / target_service_up
 # 	we consider the container up if the difference between last seen and now 
 # 	is smaller than a max response-time (we cloud make that even configurable -> scalar(x)). 
 container_up = (time() - container_last_seen) <bool 100
-servicecontainer_up=sum(container_up) by (cl_cd_swarm_service_name) or (target_servicecontainer_up * 0)
+servicecontainer_up=sum(container_up) by (cl_cd_swarm_service_name) or (target_servicecontainer * 0)
 sla_servicecontainer_up = servicecontainer_up / target_servicecontainers
 
 

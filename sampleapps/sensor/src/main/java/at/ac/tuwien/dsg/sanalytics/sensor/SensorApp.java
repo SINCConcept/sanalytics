@@ -9,6 +9,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Profile;
 import org.springframework.integration.annotation.GatewayHeader;
 import org.springframework.integration.annotation.IntegrationComponentScan;
 import org.springframework.integration.annotation.MessagingGateway;
@@ -57,6 +58,7 @@ public class SensorApp {
 			actualSensorName = providedSensorName;
 		return actualSensorName;
 	}
+	
 	
 	@Bean
 	@ServiceActivator(inputChannel = "mqttOutboundChannel")

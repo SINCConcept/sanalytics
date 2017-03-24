@@ -63,7 +63,7 @@ services:
           memory: 180M
           cpus: "1.0"
     ports: 
-      - "9090:9090"  
+      - "9091:9090"  
     volumes: 
       - /mastergit/sanalytics/sampleapps/prom/:/etc/prometheus/
       - /c/Users/cproinger/Documents/Docker/prom/cloud:/prometheus
@@ -71,6 +71,7 @@ services:
     networks:
       - app_overlay
       - monitoring_overlay
+      - platform_overlay
     depends_on: 
     # these do not need to be defined regarding DNS resolution of the names (just if you are wondering)
       - filter-proxy

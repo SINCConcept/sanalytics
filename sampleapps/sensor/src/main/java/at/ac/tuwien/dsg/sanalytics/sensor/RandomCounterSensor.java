@@ -3,12 +3,14 @@ package at.ac.tuwien.dsg.sanalytics.sensor;
 import java.util.Random;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
 import org.springframework.integration.annotation.GatewayHeader;
 import org.springframework.integration.annotation.MessagingGateway;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 @Component
+@Profile({"random", "dummy"})
 public class RandomCounterSensor {
 	
 	@MessagingGateway(
