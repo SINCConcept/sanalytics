@@ -1,6 +1,6 @@
-# ========= Services ==========
 
-# here we can define services, or limits for services, as meta-data
+target_servicecontainers{cl_cd_swarm_service_name="iotstack_mqtt"}=1.0
+target_servicecontainers{cl_cd_swarm_service_name="iotstack_iot2nfvBridge"}=1.0
+target_servicecontainers{cl_cd_swarm_service_name="iotstack_sensor"}=1.0
 
-#sla_service_up{cl_cd_swarm_service_name="iotstack_mqtt",cl_cd_stack_namespace="iotstack"}=1.0
-sla_service_up{cl_cd_swarm_service_name="iotstack_iot2nfvBridge",cl_cd_stack_namespace="iotstack"}=1.0
+target_service_up{job="iot2nfvBridge"}=1.0

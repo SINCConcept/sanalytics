@@ -1,0 +1,1 @@
+ docker stack deploy --compose-file dc-S2-cloud-slice-part-with-monitoring.yml cloudstackS2

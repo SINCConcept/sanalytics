@@ -1,0 +1,1 @@
+docker stack deploy --compose-file dc-nfv-S2-slice-part-with-monitoring.yml nfvstackS2

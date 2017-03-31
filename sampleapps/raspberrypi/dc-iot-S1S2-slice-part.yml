@@ -1,0 +1,92 @@
+version: "3"
+services:
+
+# ---------- application services ---------------
+  
+  mqtt:
+    image: pascaldevink/rpi-mosquitto:1.0
+    deploy: 
+      resources: 
+        limits: 
+          memory: 10M
+          cpus: "0.5"
+#    ports:
+#      - "1884:1883"
+    networks:
+      - app_overlay      
+    deploy: 
+      placement:
+        constraints:
+          - node.hostname != c1n1
+    
+  sensor-1161114003:
+    depends_on:
+      - mqtt
+    image: cproinger/rpi-sample-sensor
+    deploy: 
+      resources: 
+        limits: 
+          memory: 64M
+          cpus: "2.0"
+    networks:
+      - app_overlay
+    environment: 
+      - JAVA_OPTS=-Xmx16m -Dspring.profiles.active=csv -Dsensor.name=1161114003 -Dmqtt.brokerURL=tcp://iotstack_mqtt:1883     
+    volumes:
+      - /home/pi/sensor-data/stationmonitoringdata000000000010.csv:/data/sensor.csv
+    deploy: 
+      placement:
+        constraints:
+          - node.hostname != c1n1         
+    
+
+#  iot2nfvBridge:
+#    depends_on:
+#      - mqtt
+#    image: cproinger/rpi-sample-bridge
+#    deploy: 
+#      resources: 
+#        limits: 
+#          memory: 128M
+#    networks:
+#      - app_overlay
+#      - nfvstack_app_overlay
+#    environment: 
+#      - JAVA_OPTS=-Xmx100m -Dspring.profiles.active=inbound-mqtt,forwarder,outbound-mqtt -Dinbound-mqtt.brokerURL=tcp://imqtt:1883 -Doutbound-mqtt.brokerURL=tcp://nfvstackS1_mqtt:1883      
+
+# ---------- monitoring services ---------------
+    
+  prometheus:
+    #docker service create -p 9090:9090 --mount type=bind,source=/mastergit/sanalytics/sampleapps/prom/prometheus.yml,target=/etc/prometheus/prometheus.yml --name=prometheus --network="custom_monitoring" --network="mystack_app_overlay" --env INFLUXDB_PW=password --container-label sanalytics.slice="slice0" prom/prometheus -config.file=/etc/prometheus/prometheus.yml -storage.local.path=/prometheus -web.console.libraries=/etc/prometheus/console_libraries -web.console.templates=/etc/prometheus/consoles -storage.remote.influxdb-url http://influx:8086 -storage.remote.influxdb.database mytestdb -storage.remote.influxdb.retention-policy "autogen" -storage.remote.influxdb.username username 
+    image: cproinger/rpi-prometheus
+    ports: 
+      - "9092:9090"  
+    volumes: 
+      - /home/pi/cproinger/configs/prom:/etc/prometheus/
+      - /home/pi/cproinger/data/slice2/station1/prom:/prometheus      
+      #- /mastergit/sanalytics/sampleapps/prom/sample.rules:/etc/prometheus/sample.rules
+    networks:
+      - app_overlay
+      - platform_overlay
+    command: 
+      - -config.file=/etc/prometheus/prometheus-iot-S1S2.yml
+      - -storage.local.path=/prometheus
+      - -web.console.libraries=/etc/prometheus/console_libraries
+      - -web.console.templates=/etc/prometheus/consoles
+      #- -storage.remote.influxdb-url=http://cloudstack_influx:8086 -> invalid URL ??? WTF!
+      # *banging head against table* -> https://github.com/prometheus/prometheus/issues/2022  
+      - -storage.remote.influxdb-url=http://globalmonitoring.sanalytics.tk:8086 
+      - -storage.remote.influxdb.database=s1db 
+      - -storage.remote.influxdb.retention-policy=autogen 
+      - -storage.remote.influxdb.username=s1user      
+    environment: 
+      - INFLUXDB_PW=s1password
+    deploy: 
+      placement:
+        constraints:
+          - node.role == manager
+   
+networks:
+  app_overlay:    
+#  nfvstack_app_overlay:
+#    external: true 

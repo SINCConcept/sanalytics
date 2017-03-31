@@ -1,0 +1,1 @@
+ docker stack deploy --compose-file dc-S1-cloud-slice-part.yml cloudstackS1

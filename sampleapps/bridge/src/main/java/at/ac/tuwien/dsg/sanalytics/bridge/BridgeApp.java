@@ -46,9 +46,11 @@ public class BridgeApp {
 		ConfigurableApplicationContext ctx = new SpringApplicationBuilder(BridgeApp.class).run(args);
 	}
 
+	//why is this needed???
 	@Bean
 	public EmbeddedServletContainerFactory servletContainerFactory() {
 		TomcatEmbeddedServletContainerFactory factory = new TomcatEmbeddedServletContainerFactory();
+		factory.setPort(Integer.valueOf(System.getProperty("server.port", "8080")));
 		return factory;
 	}
 

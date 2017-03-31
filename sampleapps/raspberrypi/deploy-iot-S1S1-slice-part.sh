@@ -1,0 +1,1 @@
+docker stack deploy --compose-file dc-iot-S1S1-slice-part.yml iotstackS1S1

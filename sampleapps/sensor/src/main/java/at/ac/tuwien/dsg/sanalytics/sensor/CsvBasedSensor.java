@@ -46,10 +46,12 @@ public class CsvBasedSensor {
 
 	@Scheduled(fixedDelay = 10_000)
 	public void sendCSVDataToMqtt() throws FileNotFoundException, IOException {
+		String sensorName = app.actualSensorName();
+		LOG.info("starting to send new batch of data (sensorid = '" + sensorName + "')");
 		File f = new File(fileName);
 		try(FileInputStream fis = new FileInputStream(f);
 				BufferedInputStream bis = new BufferedInputStream(fis)) {
-			DataReader dr = new DataReader(app.actualSensorName(), bis);
+			DataReader dr = new DataReader(sensorName, bis);
 			Entry<String, String> v = null;
 			while((v = dr.nextValue(System.currentTimeMillis())) != null) {
 				LOG.info("sending: " + v);

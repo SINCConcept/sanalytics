@@ -1,0 +1,78 @@
+version: "3"
+services:
+
+# ---------- application services ---------------
+
+      
+  cep:
+    depends_on:
+      - mqtt
+    image: cproinger/rpi-sample-bridge
+    deploy: 
+      resources: 
+        limits: 
+          memory: 180M
+          cpus: "1.0"
+#    ports:
+#      - "8082:8080"
+    networks:
+      - app_overlay   
+    environment: 
+      - JAVA_OPTS=-server -Xmx100m -XX:MaxMetaspaceSize=64m -Dspring.profiles.active=inbound-mqtt,esper-cep-datapoint,outbound-rabbitmq -Dinbound-mqtt.brokerURL=tcp://mqtt:1883 -Dinbound-mqtt.subscriptions=sensor/+/datapoint/+/ -Doutbound-rabbitmq.queue=cepresults -Dspring.rabbitmq.host=cloud2.sanalytics.tk -Dspring.rabbitmq.username=guest -Dspring.rabbitmq.password=guest
+    deploy: 
+      placement:
+        constraints:
+          - node.hostname != c1n1    
+    
+  mqtt:
+    image: pascaldevink/rpi-mosquitto:1.0
+    deploy: 
+      resources: 
+        limits: 
+          memory: 10M
+          cpus: "0.5"          
+#    ports:
+#      - "1883:1883"
+    networks:
+      - app_overlay   
+    deploy: 
+      placement:
+        constraints:
+          - node.hostname != c1n1
+          
+# ---------- monitoring services ---------------
+    
+  prometheus:
+    #docker service create -p 9090:9090 --mount type=bind,source=/mastergit/sanalytics/sampleapps/prom/prometheus.yml,target=/etc/prometheus/prometheus.yml --name=prometheus --network="custom_monitoring" --network="mystack_app_overlay" --env INFLUXDB_PW=password --container-label sanalytics.slice="slice0" prom/prometheus -config.file=/etc/prometheus/prometheus.yml -storage.local.path=/prometheus -web.console.libraries=/etc/prometheus/console_libraries -web.console.templates=/etc/prometheus/consoles -storage.remote.influxdb-url http://influx:8086 -storage.remote.influxdb.database mytestdb -storage.remote.influxdb.retention-policy "autogen" -storage.remote.influxdb.username username 
+    image: cproinger/rpi-prometheus
+#    ports: 
+#      - "9099:9090"  
+    volumes: 
+      - /home/pi/cproinger/configs/prom:/etc/prometheus/
+      - /home/pi/cproinger/data/slice2/nfv1:/prometheus      
+      #- /mastergit/sanalytics/sampleapps/prom/sample.rules:/etc/prometheus/sample.rules
+    networks:
+      - app_overlay
+      - platform_overlay
+    command: 
+      - -config.file=/etc/prometheus/prometheus-nfv-S2.yml
+      - -storage.local.path=/prometheus
+      - -web.console.libraries=/etc/prometheus/console_libraries
+      - -web.console.templates=/etc/prometheus/consoles
+      #- -storage.remote.influxdb-url=http://influx:8086 -> invalid URL ??? WTF!
+      # *banging head against table* -> https://github.com/prometheus/prometheus/issues/2022  
+      - -storage.remote.influxdb-url=http://globalmonitoring.sanalytics.tk:8086 
+      - -storage.remote.influxdb.database=s1db 
+      - -storage.remote.influxdb.retention-policy=autogen 
+      - -storage.remote.influxdb.username=s1user      
+    environment: 
+      - INFLUXDB_PW=s1password
+    deploy: 
+      placement:
+        constraints:
+          - node.role == manager
+          
+networks:
+  app_overlay: 
+  platform_overlay:
+    external: true   

@@ -20,11 +20,10 @@ import com.espertech.esper.client.EventBean;
 import com.espertech.esper.client.UpdateListener;
 
 import at.ac.tuwien.dsg.sanalytics.events.RandomCount;
-import io.prometheus.client.Counter;
 
 @Component
-@Profile({"esper-cep"})
-public class RandomCountAnalyzer {
+@Profile({"esper-cep-randomcount"})
+public class RandomCountAnalyzer extends AbstractAnalyzer {
 
 	@MessagingGateway(
 			defaultRequestChannel = "outboundChannel"
@@ -32,9 +31,10 @@ public class RandomCountAnalyzer {
 //					name = "mqtt_topic", 
 //					expression = "'sensor/' + @actualSensorName + '/randomcount'")
 			)
-		public interface RandomCounterGateway {
-			void sendEvent(RandomCount rc);
-		}
+	@Profile({"esper-cep-randomcount"})
+	public interface RandomCounterGateway {
+		void sendEvent(RandomCount rc);
+	}
 	
 	private final static Logger LOG = LoggerFactory.getLogger(RandomCountAnalyzer.class);
 	
@@ -46,17 +46,6 @@ public class RandomCountAnalyzer {
 	
 	@Autowired
 	private EPRuntime cepRT;
-	
-
-	private Counter eventsSent = Counter.build()
-			.name("cep_events_sent_total")
-			.help("Total number of events sent to backend store")
-			.register();
-	
-	private Counter messages = Counter.build()
-			.name("cep_messages_processed_total")
-			.help("Total number of messages received via mqtt")
-			.register();
 
 	@PostConstruct
 	private void initStatement() {

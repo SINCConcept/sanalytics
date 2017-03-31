@@ -1,0 +1,89 @@
+version: "3"
+services:
+
+# ---------- application services ---------------
+
+  mymongodb:
+    image: cproinger/mongo-with-prom-exporter
+    #image: mongo:3.4.1
+    #bug https://github.com/docker/docker/issues/30297
+    #lables: 
+    #  sanalytics.slice: "slice0"
+    deploy:
+    #  labels:
+    #    sanalytics.slice: "slice0"
+      resources: 
+        limits: 
+          memory: 200M
+          cpus: "0.25"
+    ports:
+      - "27017:27017"
+    networks:
+      - app_overlay
+      
+  rabbitmq: 
+    image: cproinger/rabbitmq-management-monitoring
+    deploy: 
+      resources: 
+        limits: 
+          memory: 120M
+          cpus: "0.25"
+    ports: 
+      - "5672:5672"
+      - "15672:15672"      
+    networks:
+      - app_overlay   
+      
+  rabbit2mongo:
+    depends_on:
+      - mymongodb
+      - mqtt
+    image: cproinger/sample-bridge
+    deploy: 
+      resources: 
+        limits: 
+          memory: 180M
+          cpus: "0.25"
+    ports:
+      - "8081:8080"
+    networks:
+      - app_overlay   
+    environment: 
+      - JAVA_OPTS=-server -Xmx100m -XX:MaxMetaspaceSize=64m -Dspring.profiles.active=inbound-rabbitmq,forwarder,outbound-mongo-datapoint -Dinbound-rabbitmq.queue=cepresults -Dspring.rabbitmq.host=rabbitmq -Dspring.rabbitmq.username=guest -Dspring.rabbitmq.password=guest -Dspring.data.mongodb.uri=mongodb://mymongodb:27017/cepresults   
+
+
+# ---------- monitoring services ---------------
+    
+  prometheus:
+    #docker service create -p 9090:9090 --mount type=bind,source=/mastergit/sanalytics/sampleapps/prom/prometheus.yml,target=/etc/prometheus/prometheus.yml --name=prometheus --network="custom_monitoring" --network="mystack_app_overlay" --env INFLUXDB_PW=password --container-label sanalytics.slice="slice0" prom/prometheus -config.file=/etc/prometheus/prometheus.yml -storage.local.path=/prometheus -web.console.libraries=/etc/prometheus/console_libraries -web.console.templates=/etc/prometheus/consoles -storage.remote.influxdb-url http://influx:8086 -storage.remote.influxdb.database mytestdb -storage.remote.influxdb.retention-policy "autogen" -storage.remote.influxdb.username username 
+    image: prom/prometheus
+    deploy: 
+      resources: 
+        limits: 
+          memory: 180M
+          cpus: "1.0"
+    ports: 
+      - "9091:9090"  # 9090 is always the platform-prometheus port
+    volumes:  
+      - /home/docker-user/sanalytics/configs/prom:/etc/prometheus/
+      - /home/docker-user/sanalytics/data/S2/prom:/prometheus
+      #- /mastergit/sanalytics/sampleapps/prom/sample.rules:/etc/prometheus/sample.rules
+    networks:
+      - app_overlay
+      - platform_overlay
+    command: 
+      - -config.file=/etc/prometheus/prometheus-S2-cloud.yml
+      - -storage.local.path=/prometheus
+      - -web.console.libraries=/etc/prometheus/console_libraries
+      - -web.console.templates=/etc/prometheus/consoles  
+      - -storage.remote.influxdb-url=http://globalmonitoring.sanalytics.tk:8086 
+      - -storage.remote.influxdb.database=s1db
+      - -storage.remote.influxdb.retention-policy=autogen 
+      - -storage.remote.influxdb.username=s1user      
+    environment: 
+      - INFLUXDB_PW=s1password
+    
+networks:
+  app_overlay: 
+  platform_overlay:
+    external: true

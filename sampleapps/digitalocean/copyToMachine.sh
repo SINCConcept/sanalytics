@@ -1,0 +1,1 @@
+docker-machine scp -r ../cloud-swarm-manager/* docloud-swarm-manager:/home/sanalytics

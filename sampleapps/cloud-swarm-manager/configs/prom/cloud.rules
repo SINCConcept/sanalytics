@@ -1,0 +1,26 @@
+# ========= Services ==========
+
+# here we can define services, or limits for services, as meta-data
+
+target_servicecontainers{cl_cd_swarm_service_name="cloudstack_rabbitmq"}=1.0
+target_servicecontainers{cl_cd_swarm_service_name="cloudstack_mymongodb"}=1.0
+# here i could say for example, an availability of 0,7 is totally ok
+# since the messages will be collected eventually 
+target_servicecontainers{cl_cd_swarm_service_name="cloudstack_rabbit2mongo"}=2.0
+
+# are containers completely absent? actually not needed see servicecontainer_up definition. 
+#absent_servicecontainers{cl_cd_swarm_service_name="cloudstack_rabbitmq"} = absent(servicecontainer_up{cl_cd_swarm_service_name="cloudstack_rabbitmq"})
+#absent_servicecontainers{cl_cd_swarm_service_name="cloudstack_mymongodb"} = absent(servicecontainer_up{cl_cd_swarm_service_name="cloudstack_mymongodb"})
+#absent_servicecontainers{cl_cd_swarm_service_name="cloudstack_rabbit2mongo"} = absent(servicecontainer_up{cl_cd_swarm_service_name="cloudstack_rabbit2mongo"})
+
+#target_servicecontainers{cl_cd_swarm_service_name="cloudstack_mymongodb"}=1.0
+# here i could say for example, an availability of 0,7 is totally ok
+# since the messages will be collected eventually 
+#target_servicecontainers{cl_cd_swarm_service_name="cloudstack_rabbit2mongo"}=2.0
+
+## how many instances do we want to have running 
+target_service_up{job="rabbitmq"}=1.0
+target_service_up{job="mongo"}=1.0
+# here i could say for example, an availability of 0,7 is totally ok
+# since the messages will be collected eventually 
+target_service_up{job="rabbit2mongo"}=2.0

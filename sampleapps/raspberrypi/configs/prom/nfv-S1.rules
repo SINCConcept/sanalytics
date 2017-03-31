@@ -1,0 +1,8 @@
+# ========= Services ==========
+
+# here we can define services, or limits for services, as meta-data
+
+target_servicecontainers{cl_cd_swarm_service_name="nfvstackS1_mqtt"}=1.0
+target_servicecontainers{cl_cd_swarm_service_name="nfvstackS1_cep"}=1.0
+
+target_service_up{job="cep"}=1.0

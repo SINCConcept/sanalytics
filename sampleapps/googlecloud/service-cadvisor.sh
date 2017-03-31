@@ -1,1 +1,0 @@
-docker service create --network=cloud_platform_overlay -p 8888:8080 --mode global --name cadvisor --mount type=bind,source=/,target=/rootfs,readonly=true --mount type=bind,source=/var/run,target=/var/run,readonly=false --mount type=bind,source=/sys,target=/sys,readonly=true --mount type=bind,source=/var/lib/docker/,target=/var/lib/docker,readonly=true google/cadvisor:latest

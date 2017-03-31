@@ -1,0 +1,48 @@
+version: "3"
+services:
+
+#docker service create -p 8083:8083 -p 8086:8086  --network="custom_monitoring" --name influx 
+# --mount type=bind,source=/c/Users/cproinger/Documents/Docker/test_data/influxdb,target=/influx_test_data  
+# --mount type=bind,source=/c/Users/cproinger/Documents/Docker/influx,target=/var/lib/influxdb --container-label sanalytics.slice="slice0" influxdb:1.1.0
+  influx: 
+    image: influxdb:1.1.0
+    deploy: 
+      resources: 
+        limits: 
+          memory: 400M
+          cpus: "1.0"    
+    ports: 
+#      - "8083:8083" #admin-ui to create databases and users
+      - "8086:8086" 
+    volumes: 
+      - /home/docker-user/sanalytics/data/influx:/var/lib/influxdb
+    networks:
+        - monitoring_overlay    
+
+#docker service create \
+#  -p 3000:3000 \
+#  --network="custom_monitoring" \
+#  --name grafana \
+#  --container-label sanalytics.slice="slice0" \
+#  grafana/grafana    
+  grafana: 
+    image: monitoringartist/grafana-xxl
+    deploy: 
+      resources: 
+        limits: 
+          memory: 180M
+          cpus: "1.0"    
+    depends_on: 
+      - influx
+    ports: 
+      - "3000:3000"
+    volumes: 
+      - /home/docker-user/sanalytics/data/grafana:/var/lib/grafana
+    networks: 
+      - monitoring_overlay
+    environment:
+      - GF_SERVER_ROOT_URL=http://globalmonitoring.sanalytics.tk
+      - GF_SECURITY_ADMIN_PASSWORD=sanalytics-secret
+      
+networks:
+  monitoring_overlay:            

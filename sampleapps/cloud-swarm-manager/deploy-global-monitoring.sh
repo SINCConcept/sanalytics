@@ -1,0 +1,1 @@
+docker stack deploy --compose-file dc-global-monitoring.yml globalmon

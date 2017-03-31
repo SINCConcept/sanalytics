@@ -1,0 +1,1 @@
+select station, datapoint, avg(value) as avg from Datapoint.win:time_batch(60 sec) group by station, datapoint having avg(value) is not null

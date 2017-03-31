@@ -1,0 +1,6 @@
+
+target_servicecontainers{cl_cd_swarm_service_name="iotstackS1S2_mqtt"}=1.0
+target_servicecontainers{cl_cd_swarm_service_name="iotstackS1S2_iot2nfvBridge"}=1.0
+target_servicecontainers{cl_cd_swarm_service_name="iotstackS1S2_sensor-1161114003"}=1.0
+
+target_service_up{job="iot2nfvBridge"}=1.0

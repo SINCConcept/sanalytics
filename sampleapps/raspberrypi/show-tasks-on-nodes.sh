@@ -1,0 +1,1 @@
+docker node ps c1n1 c1n2 c1n3 c1n4 c1n5

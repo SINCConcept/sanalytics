@@ -61,9 +61,9 @@ public class DataReader {
 		String l = sc.nextLine();
 		if (!datasetFound) {
 			while (!l.startsWith(col1Value)) {
-				l = sc.nextLine();
-				if (l == null)
+				if(!sc.hasNextLine())
 					return null;
+				l = sc.nextLine();
 			}
 			datasetFound = true;
 		} else {

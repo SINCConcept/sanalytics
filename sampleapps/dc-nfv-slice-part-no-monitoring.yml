@@ -1,0 +1,40 @@
+version: "3"
+services:
+
+# ---------- application services ---------------
+
+      
+  cep:
+    depends_on:
+      - mqtt
+    image: cproinger/sample-bridge
+    deploy: 
+      resources: 
+        limits: 
+          memory: 180M
+          cpus: "0.1"
+    ports:
+      - "8082:8080"
+    networks:
+      - app_overlay  
+      - cloudstack_app_overlay 
+    environment: 
+      - JAVA_OPTS=-server -Xmx100m -XX:MaxMetaspaceSize=64m -Dspring.profiles.active=inbound-mqtt,esper-cep,outbound-rabbitmq -Dinbound-mqtt.brokerURL=tcp://nfvstack_mqtt:1883 -Dinbound-mqtt.subscriptions=sensor/+/randomcount -Dspring.rabbitmq.host=cloudstack_rabbitmq -Dspring.rabbitmq.username=guest -Dspring.rabbitmq.password=guest
+    
+    
+  mqtt:
+    image: toke/mosquitto:release-1.4.10-2
+    deploy: 
+      resources: 
+        limits: 
+          memory: 10M
+          cpus: "0.5"          
+    ports:
+      - "1883:1883"
+    networks:
+      - app_overlay   
+
+networks:
+  app_overlay:
+  cloudstack_app_overlay:
+    external: true        

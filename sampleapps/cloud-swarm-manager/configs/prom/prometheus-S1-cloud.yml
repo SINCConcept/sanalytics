@@ -3,6 +3,7 @@ global:
   scrape_timeout: 30s
   external_labels: 
     env: Cloud
+    slice: s1
     
   remote_write:
     write_relabel_configs:
@@ -12,30 +13,29 @@ global:
 
 rule_files: 
   - /etc/prometheus/sample.rules
+  - /etc/prometheus/cloud.rules
 
 scrape_configs:
   # The job name is added as a label `job=<job_name>` to any timeseries scraped from this config.
   - job_name: 'cloudPlatform'
-    # metrics_path defaults to '/metrics'
-    # scheme defaults to 'http'.
-    metrics_path: '/metrics/cloudstack'
+    metrics_path: '/federate'
+    honor_labels: true
+    params:
+      'match[]':
+        - '{cl_cd_stack_namespace="cloudstackS1"}'
     static_configs:
-      - targets: ['cloudstack_filter-proxy:8080']
-    metric_relabel_configs: 
-    - regex: 'container_label_com_docker_(.*)'
-      action: labelmap
-      replacement: 'cl_cd_${1}'
+      - targets: ['prom_platform:9090'] 
 
   # The job name is added as a label `job=<job_name>` to any timeseries scraped from this config.
   - job_name: 'rabbit2mongo'
     static_configs:
-      - targets: ['cloudstack_rabbit2mongo:8080']
+      - targets: ['rabbit2mongo:8080']
   
   - job_name: 'mongo'
     static_configs: 
-      - targets: ['cloudstack_mymongodb:9001']
+      - targets: ['mymongodb:9001']
       
   - job_name: 'rabbitmq'
     metrics_path: '/api/metrics'
     static_configs: 
-      - targets: ['cloudstack_rabbitmq:15672']
+      - targets: ['rabbitmq:15672']
