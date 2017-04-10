@@ -1,5 +1,7 @@
 package at.ac.tuwien.dsg.sanalytics.meta;
 
+import javax.transaction.Transactional;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +38,7 @@ public class MermaidGraphDescriptionController {
 	@RequestMapping(path = "/slices/{id}/graphDefinition"
 			, method = RequestMethod.PUT
 			, produces = "text/plain")
+	@Transactional
 	public ResponseEntity<String> putGraphDefinition(
 			@PathVariable("id") String id,
 			@RequestBody String body) {
@@ -44,7 +47,7 @@ public class MermaidGraphDescriptionController {
 			s = new Slice(id);
 		
 		s.setGraphDefinition(body);
-		
+		repo.save(s);
 		return new ResponseEntity<>(body, HttpStatus.OK);
 	}
 }
