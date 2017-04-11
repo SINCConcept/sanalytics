@@ -1,0 +1,14 @@
+graph LR
+container.iotstackS3S1_sensor-1161115044(sensor-1161115044) --- container.iotstackS3S1_mqtt[iotS1_mqtt]
+container.iotstackS3S1_actuator(actuator) --- container.iotstackS3S1_mqtt[iotS1_mqtt]
+container.iotstackS3S1_mqtt[iotS1_mqtt] --- job.IoT.iot2nfvBridge[iot2nfvBridge]
+job.IoT.iot2nfvBridge[iot2nfvBridge] --- container.nfvstackS3_mqtt[nfv_mqtt]
+container.nfvstackS3_mqtt[nfv_mqtt] --- job.NFV.cep[CEP]
+job.NFV.cep[CEP] --- job.Cloud2.rabbitmq[rabbitmq]
+container.nfvstackS3_db[DB] --- job.NFV.cep[CEP]
+job.NFV.nfv2iotBridge[nfv2iotBridge] --- container.nfvstackS3_db[DB]
+job.NFV.nfv2iotBridge[nfv2iotBridge] --- job.Cloud2.rabbitmq[rabbitmq]
+job.NFV.nfv2iotBridge[nfv2iotBridge] --- container.nfvstackS3_mqtt[nfv_mqtt]
+job.Cloud2.rabbitmq[rabbitmq] --- job.Cloud2.rabbit2mongo[rabbit2mongo]
+job.Cloud2.rabbit2mongo[rabbit2mongo] --- job.Cloud2.mongo[mongo]
+ 
