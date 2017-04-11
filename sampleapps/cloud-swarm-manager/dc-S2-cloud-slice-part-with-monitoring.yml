@@ -14,7 +14,7 @@ services:
     #    sanalytics.slice: "slice0"
       resources: 
         limits: 
-          memory: 200M
+          memory: 120M
           cpus: "0.25"
     ports:
       - "27017:27017"
@@ -49,7 +49,7 @@ services:
     networks:
       - app_overlay   
     environment: 
-      - JAVA_OPTS=-server -Xmx100m -XX:MaxMetaspaceSize=64m -Dspring.profiles.active=inbound-rabbitmq,forwarder,outbound-mongo-datapoint -Dinbound-rabbitmq.queue=cepresults -Dspring.rabbitmq.host=rabbitmq -Dspring.rabbitmq.username=guest -Dspring.rabbitmq.password=guest -Dspring.data.mongodb.uri=mongodb://mymongodb:27017/cepresults   
+      - JAVA_OPTS=-server -Xmx44m -XX:MaxMetaspaceSize=64m -Dspring.profiles.active=inbound-rabbitmq,forwarder,outbound-mongo-datapoint -Dinbound-rabbitmq.queue=cepresults -Dspring.rabbitmq.host=rabbitmq -Dspring.rabbitmq.username=guest -Dspring.rabbitmq.password=guest -Dspring.data.mongodb.uri=mongodb://mymongodb:27017/cepresults   
 
 
 # ---------- monitoring services ---------------
@@ -60,7 +60,7 @@ services:
     deploy: 
       resources: 
         limits: 
-          memory: 180M
+          memory: 160M
           cpus: "1.0"
     ports: 
       - "9091:9090"  # 9090 is always the platform-prometheus port
@@ -76,6 +76,7 @@ services:
       - -storage.local.path=/prometheus
       - -web.console.libraries=/etc/prometheus/console_libraries
       - -web.console.templates=/etc/prometheus/consoles  
+      - -storage.local.memory-chunks=102400      
       - -storage.remote.influxdb-url=http://globalmonitoring.sanalytics.tk:8086 
       - -storage.remote.influxdb.database=s1db
       - -storage.remote.influxdb.retention-policy=autogen 

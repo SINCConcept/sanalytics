@@ -38,11 +38,26 @@ services:
       - "3000:3000"
     volumes: 
       - /home/docker-user/sanalytics/data/grafana:/var/lib/grafana
+      - /home/docker-user/sanalytics/my/grafana-diagram:/grafana-plugins/jdbranham-diagram-panel      
     networks: 
       - monitoring_overlay
     environment:
       - GF_SERVER_ROOT_URL=http://globalmonitoring.sanalytics.tk
       - GF_SECURITY_ADMIN_PASSWORD=sanalytics-secret
+      
+  monitoring-metadata: 
+    image: cproinger/monitoring-metadata
+    deploy: 
+      resources: 
+        limits: 
+          memory: 240M
+          cpus: "0.25"    
+    ports: 
+      - "8080:8080"
+    networks: 
+      - monitoring_overlay
+    environment:
+      - JAVA_OPTS=-server -Xmx80m -XX:MaxMetaspaceSize=64m -Dspring.profiles.active=sample    
       
 networks:
   monitoring_overlay:            

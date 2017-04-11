@@ -2,7 +2,7 @@ my_container_spec_cpus = container_spec_cpu_quota / 100000
 my_container_cpu_percent = (sum(rate(container_cpu_user_seconds_total[1m])) by (cl_cd_swarm_service_name, cl_cd_swarm_task_name)) / ignoring(cl_cd_swarm_service_name, cl_cd_swarm_task_name) group_left count(node_cpu{mode="system"})  * 100
 # ========= RAM, JVM-Memory ==============
 
-container_memory_percent=container_memory_usage_bytes / container_spec_memory_limit_bytes
+#container_memory_percent=container_memory_usage_bytes / container_spec_memory_limit_bytes
 jvm_memory_bytes_percent=jvm_memory_bytes_used / jvm_memory_bytes_max
 
 # ========= CPU ==========================

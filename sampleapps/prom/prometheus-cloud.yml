@@ -40,6 +40,7 @@ scrape_configs:
       - 'tasks.cloudstack_rabbit2mongo'
       type: 'A'
       port: 8080
+      #TODO add __meta_dns_name meta-label for the DNS-name. 
   
   - job_name: 'mongo'
     static_configs: 

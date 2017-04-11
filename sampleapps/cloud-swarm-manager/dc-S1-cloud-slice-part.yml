@@ -49,7 +49,7 @@ services:
     networks:
       - app_overlay   
     environment: 
-      - JAVA_OPTS=-server -Xmx100m -XX:MaxMetaspaceSize=64m -Dspring.profiles.active=inbound-rabbitmq,forwarder,outbound-mongo-datapoint -Dinbound-rabbitmq.queue=cepresults -Dspring.rabbitmq.host=rabbitmq -Dspring.rabbitmq.username=guest -Dspring.rabbitmq.password=guest -Dspring.data.mongodb.uri=mongodb://mymongodb:27017/cepresults   
+      - JAVA_OPTS=-server -Xmx44m -XX:MaxMetaspaceSize=64m -Dspring.profiles.active=inbound-rabbitmq,forwarder,outbound-mongo-datapoint -Dinbound-rabbitmq.queue=cepresults -Dspring.rabbitmq.host=rabbitmq -Dspring.rabbitmq.username=guest -Dspring.rabbitmq.password=guest -Dspring.data.mongodb.uri=mongodb://mymongodb:27017/cepresults   
     
 networks:
   app_overlay: 

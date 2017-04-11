@@ -73,6 +73,7 @@ services:
       - -storage.local.path=/prometheus
       - -web.console.libraries=/etc/prometheus/console_libraries
       - -web.console.templates=/etc/prometheus/consoles
+      - -storage.local.memory-chunks=102400      
       #- -storage.remote.influxdb-url=http://cloudstack_influx:8086 -> invalid URL ??? WTF!
       # *banging head against table* -> https://github.com/prometheus/prometheus/issues/2022  
       - -storage.remote.influxdb-url=http://globalmonitoring.sanalytics.tk:8086 
