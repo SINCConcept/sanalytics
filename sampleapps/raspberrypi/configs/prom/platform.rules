@@ -1,5 +1,4 @@
 platform_default_container_cpu_quota = 400000
-
 platform_container_spec_cpus = (container_spec_cpu_quota or (container_cpu_user_seconds_total * 0 + scalar(platform_default_container_cpu_quota))) / 100000
 #platform_container_cpu_percent = (sum(rate(container_cpu_user_seconds_total[1m])) by (cl_cd_swarm_service_name, cl_cd_swarm_task_name)) / ignoring(cl_cd_swarm_service_name, cl_cd_swarm_task_name) group_left count(node_cpu{mode="system"})  * 100
 

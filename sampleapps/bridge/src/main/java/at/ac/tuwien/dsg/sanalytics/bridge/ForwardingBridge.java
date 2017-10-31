@@ -29,7 +29,8 @@ public class ForwardingBridge {
 //		return new DirectChannel();
 //	}
 	
-	private Counter bridgedMessages = Counter.build().name("forwarder_bridged_messages_total")
+	private Counter bridgedMessages = Counter.build()
+			.name("forwarder_bridged_messages_total")
 			.help("The number of messages that have been bridged between input and output")
 			.register();
 	

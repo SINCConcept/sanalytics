@@ -9,7 +9,7 @@ services:
     deploy: 
       resources: 
         limits: 
-          memory: 400M
+          memory: 500M
           cpus: "1.0"    
     ports: 
 #      - "8083:8083" #admin-ui to create databases and users
@@ -36,6 +36,7 @@ services:
       - influx
     ports: 
       - "3000:3000"
+#      - "80:3000"
     volumes: 
       - /home/docker-user/sanalytics/data/grafana:/var/lib/grafana
       - /home/docker-user/sanalytics/my/grafana-diagram:/grafana-plugins/jdbranham-diagram-panel      
@@ -50,7 +51,7 @@ services:
     deploy: 
       resources: 
         limits: 
-          memory: 240M
+          memory: 260M
           cpus: "0.25"    
     ports: 
       - "8080:8080"

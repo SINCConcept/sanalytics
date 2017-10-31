@@ -28,8 +28,11 @@ scrape_configs:
 
   # The job name is added as a label `job=<job_name>` to any timeseries scraped from this config.
   - job_name: 'rabbit2mongo'
-    static_configs:
-      - targets: ['rabbit2mongo:8080']
+    dns_sd_configs:
+    - names: 
+      - 'tasks.rabbit2mongo'
+      type: 'A'
+      port: 8080
   
   - job_name: 'mongo'
     static_configs: 

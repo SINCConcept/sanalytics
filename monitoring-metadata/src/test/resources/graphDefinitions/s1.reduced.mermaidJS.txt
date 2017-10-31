@@ -1,0 +1,9 @@
+graph LR
+sensor1 --- iot_mqtt
+sensor2 --- iot_mqtt
+iot_mqtt --- iot2nfvBridge
+iot2nfvBridge --- nfv_mqtt
+nfv_mqtt --- CEP
+CEP --- rabbitmq
+rabbitmq --- rabbit2mongo
+rabbit2mongo --- mongo

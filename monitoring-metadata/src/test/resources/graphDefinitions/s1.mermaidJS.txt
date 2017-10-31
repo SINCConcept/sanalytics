@@ -4,7 +4,7 @@ container.iotstackS1S1_sensor-1161114002(sensor-1161114002) --- container.iotsta
 container.iotstackS1S1_mqtt[iotS1_mqtt] --- job.IoT.iot2nfvBridge[iot2nfvBridge]
 job.IoT.iot2nfvBridge[iot2nfvBridge] --- container.nfvstackS1_mqtt[nfv_mqtt]
 container.nfvstackS1_mqtt[nfv_mqtt] --- job.NFV.cep[CEP]
-job.NFV.cep[CEP] --- job.Cloud.rabbitmq[rabbitmq]
+job.NFV.cep[EventProc] --- job.Cloud.rabbitmq[rabbitmq]
 job.Cloud.rabbitmq[rabbitmq] --- job.Cloud.rabbit2mongo[rabbit2mongo]
 job.Cloud.rabbit2mongo[rabbit2mongo] --- job.Cloud.mongo[mongo]
  
