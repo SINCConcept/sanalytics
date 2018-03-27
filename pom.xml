@@ -22,6 +22,7 @@
 		<module>sampleapps</module>
 		<module>prometheus-mosquitto-exporter</module>
 		<module>monitoring-metadata</module>
+		<module>cli</module>
 	</modules>
 
 	<dependencyManagement>

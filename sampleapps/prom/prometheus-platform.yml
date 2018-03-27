@@ -30,3 +30,8 @@ scrape_configs:
       replacement: 'cl_cd_${1}'
     - regex: 'container_label_com_docker_(.*)'
       action: labeldrop      
+    - regex: 'container_label_at_ac_tuwien_dsg_(.*)'
+      action: labelmap
+      replacement: 'cl_aatd_${1}'
+    - regex: 'container_label_at_ac_tuwien_dsg_(.*)'
+      action: labeldrop            

@@ -9,26 +9,20 @@ rule_files:
   - /etc/prometheus/sample.rules
 
 scrape_configs:
-  - job_name: 'nodex'
-    dns_sd_configs:
-    - names: 
-      - 'tasks.nodex'
-      type: 'A'
-      port: 9100
-
-  # The job name is added as a label `job=<job_name>` to any timeseries scraped from this config.
   - job_name: 'nfvPlatform'
-    metrics_path: '/metrics/nfvstack'
+    metrics_path: '/federate'
+    honor_labels: true
+    params:
+      'match[]':
+        - '{cl_cd_stack_namespace="nfvstack"}'
     static_configs:
-      - targets: ['nfvstack_filter-proxy:8080']
-    metric_relabel_configs: 
-    - regex: 'container_label_com_docker_(.*)'
-      action: labelmap
-      replacement: 'cl_cd_${1}'
+      - targets: ['prom_platform:9090'] 
             
 
-  # The job name is added as a label `job=<job_name>` to any timeseries scraped from this config.
   - job_name: 'cep'
-    static_configs:
-      - targets: ['nfvstack_cep:8080']
-  
+    dns_sd_configs:
+      - names:
+        - 'tasks.cep'
+        type: 'A'
+        port: 8080
+ 

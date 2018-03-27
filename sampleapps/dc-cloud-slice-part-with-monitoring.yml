@@ -1,4 +1,7 @@
-version: "3"
+version: "3.4"
+x-slicemon:
+  slicename: "slice1"
+  subslice: "cloud"
 services:
 
 # ---------- application services ---------------
@@ -7,11 +10,12 @@ services:
     image: cproinger/mongo-with-prom-exporter
     #image: mongo:3.4.1
     #bug https://github.com/docker/docker/issues/30297
-    #lables: 
-    #  sanalytics.slice: "slice0"
+    labels:
+      at.ac.tuwien.dsg.sanalytics.slice : "slice1"
+      at.ac.tuwien.dsg.sanalytics.subslice : "cloud"
     deploy:
-    #  labels:
-    #    sanalytics.slice: "slice0"
+      labels:
+        at.ac.tuwien.dsg.sanalytics.metricsport : "9100"
       resources: 
         limits: 
           memory: 200M
@@ -23,7 +27,12 @@ services:
       
   rabbitmq: 
     image: cproinger/rabbitmq-management-monitoring
-    deploy: 
+    labels:
+      at.ac.tuwien.dsg.sanalytics.slice : "slice1"
+      at.ac.tuwien.dsg.sanalytics.subslice : "cloud"
+    deploy:
+      labels:
+        at.ac.tuwien.dsg.sanalytics.metricsport : "15672"
       resources: 
         limits: 
           memory: 120M
@@ -39,11 +48,16 @@ services:
       - mymongodb
       - mqtt
     image: cproinger/sample-bridge
-    deploy: 
+    labels:
+      at.ac.tuwien.dsg.sanalytics.slice : "slice1"
+      at.ac.tuwien.dsg.sanalytics.subslice : "cloud"    
+    deploy:
+      labels:
+        at.ac.tuwien.dsg.sanalytics.metricsport : "8080"
       resources: 
         limits: 
           memory: 180M
-          cpus: "0.25"
+          cpus: "0.5"
     ports:
       - "8081:8080"
     networks:
@@ -55,8 +69,7 @@ services:
 # ---------- monitoring services ---------------
     
   prometheus:
-    #docker service create -p 9090:9090 --mount type=bind,source=/mastergit/sanalytics/sampleapps/prom/prometheus.yml,target=/etc/prometheus/prometheus.yml --name=prometheus --network="custom_monitoring" --network="mystack_app_overlay" --env INFLUXDB_PW=password --container-label sanalytics.slice="slice0" prom/prometheus -config.file=/etc/prometheus/prometheus.yml -storage.local.path=/prometheus -web.console.libraries=/etc/prometheus/console_libraries -web.console.templates=/etc/prometheus/consoles -storage.remote.influxdb-url http://influx:8086 -storage.remote.influxdb.database mytestdb -storage.remote.influxdb.retention-policy "autogen" -storage.remote.influxdb.username username 
-    image: prom/prometheus
+    image: prom/prometheus:v1.5.3
     deploy: 
       resources: 
         limits: 
@@ -66,15 +79,15 @@ services:
       - "9091:9090"  
     volumes: 
       - /mastergit/sanalytics/sampleapps/prom/:/etc/prometheus/
-      - /c/Users/cproinger/Documents/Docker/prom/cloud:/prometheus
+      # strange error https://github.com/prometheus/prometheus/issues/1600
+      #- /c/Users/cproinger/Documents/Docker/prom/cloud:/prometheus
       #- /mastergit/sanalytics/sampleapps/prom/sample.rules:/etc/prometheus/sample.rules
     networks:
       - app_overlay
-      - monitoring_overlay
       - platform_overlay
+      - globmonstack_monitoring_overlay
     depends_on: 
     # these do not need to be defined regarding DNS resolution of the names (just if you are wondering)
-      - filter-proxy
       - mymongodb
       - rabbitmq
       - influx
@@ -89,71 +102,10 @@ services:
       - -storage.remote.influxdb.username=username      
     environment: 
       - INFLUXDB_PW=password
-    
-  filter-proxy:
-    image: cproinger/sanalytics-filter-proxy
-    deploy: 
-      resources: 
-        limits: 
-          memory: 140M
-          cpus: "1.0"
-    ports: 
-      - "8080:8080"  
-    networks:
-      - monitoring_overlay
-      - platform_overlay
-    depends_on: 
-      - cadvisor
-    environment: 
-      - JAVA_OPTS=-server -Xmx100m -XX:MaxMetaspaceSize=32m -Dsanalytics.slice.label=container_label_com_docker_stack_namespace -Dtarget.dnsname=tasks.cadvisor
 
-#docker service create -p 8083:8083 -p 8086:8086  --network="custom_monitoring" --name influx 
-# --mount type=bind,source=/c/Users/cproinger/Documents/Docker/test_data/influxdb,target=/influx_test_data  
-# --mount type=bind,source=/c/Users/cproinger/Documents/Docker/influx,target=/var/lib/influxdb --container-label sanalytics.slice="slice0" influxdb:1.1.0
-  influx: 
-    image: influxdb:1.2.2-alpine
-    deploy: 
-      resources: 
-        limits: 
-          memory: 400M
-          cpus: "1.0"    
-    ports: 
-      - "8083:8083"
-      - "8086:8086" 
-    volumes: 
-      - /c/Users/cproinger/Documents/Docker/influx:/var/lib/influxdb
-    networks:
-      - monitoring_overlay    
-    environment:
-      - INFLUXDB_ADMIN_ENABLED=true
-
-#docker service create \
-#  -p 3000:3000 \
-#  --network="custom_monitoring" \
-#  --name grafana \
-#  --container-label sanalytics.slice="slice0" \
-#  grafana/grafana    
-  grafana: 
-    #image: grafana/grafana
-    image: monitoringartist/grafana-xxl
-    deploy: 
-      resources: 
-        limits: 
-          memory: 180M
-          cpus: "1.0"    
-    depends_on: 
-      - influx
-    ports: 
-      - "3000:3000"
-    volumes: 
-      - /c/Users/cproinger/Documents/Docker/grafana:/var/lib/grafana
-    networks: 
-      - monitoring_overlay      
-    
 networks:
   app_overlay: 
-  monitoring_overlay: 
-    labels: # does not help me much, i was hoping this would show up in the cadvisor metrics but no
-      - "at.ac.tuwien.dsg.analytics.net=monitoring_overlay"
+  globmonstack_monitoring_overlay: 
+    external: true
   platform_overlay:
     external: true

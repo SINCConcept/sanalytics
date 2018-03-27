@@ -19,7 +19,7 @@ services:
       - app_overlay  
       - cloudstack_app_overlay 
     environment: 
-      - JAVA_OPTS=-server -Xmx100m -XX:MaxMetaspaceSize=64m -Dspring.profiles.active=inbound-mqtt,esper-cep,outbound-rabbitmq -Dinbound-mqtt.brokerURL=tcp://nfvstack_mqtt:1883 -Dinbound-mqtt.subscriptions=sensor/+/randomcount -Dspring.rabbitmq.host=cloudstack_rabbitmq -Dspring.rabbitmq.username=guest -Dspring.rabbitmq.password=guest
+      - JAVA_OPTS=-server -Xmx100m -XX:MaxMetaspaceSize=64m -Dspring.profiles.active=inbound-mqtt,esper-cep-randomcount,outbound-rabbitmq -Dinbound-mqtt.brokerURL=tcp://nfvstack_mqtt:1883 -Dinbound-mqtt.subscriptions=sensor/+/randomcount -Dspring.rabbitmq.host=cloudstack_rabbitmq -Dspring.rabbitmq.username=guest -Dspring.rabbitmq.password=guest
     
     
   mqtt:
@@ -37,27 +37,29 @@ services:
 # ---------- monitoring services ---------------
     
   prometheus:
-    #docker service create -p 9090:9090 --mount type=bind,source=/mastergit/sanalytics/sampleapps/prom/prometheus.yml,target=/etc/prometheus/prometheus.yml --name=prometheus --network="custom_monitoring" --network="mystack_app_overlay" --env INFLUXDB_PW=password --container-label sanalytics.slice="slice0" prom/prometheus -config.file=/etc/prometheus/prometheus.yml -storage.local.path=/prometheus -web.console.libraries=/etc/prometheus/console_libraries -web.console.templates=/etc/prometheus/consoles -storage.remote.influxdb-url http://influx:8086 -storage.remote.influxdb.database mytestdb -storage.remote.influxdb.retention-policy "autogen" -storage.remote.influxdb.username username 
-    image: prom/prometheus
+    image: prom/prometheus:v1.5.3
     ports: 
       - "9092:9090"  
     volumes: 
       - /mastergit/sanalytics/sampleapps/prom/:/etc/prometheus/
-      - /c/Users/cproinger/Documents/Docker/prom/nfv:/prometheus      
+      # strange error https://github.com/prometheus/prometheus/issues/1600
+      #- /c/Users/cproinger/Documents/Docker/prom/nfv:/prometheus      
       #- /mastergit/sanalytics/sampleapps/prom/sample.rules:/etc/prometheus/sample.rules
     networks:
       - app_overlay
       - monitoring_overlay
       - cloudstack_monitoring_overlay
+      - platform_overlay
     depends_on: 
     # these do not need to be defined regarding DNS resolution of the names (just if you are wondering)
-      - filter-proxy
       - cep
     command: 
       - -config.file=/etc/prometheus/prometheus-nfv.yml
       - -storage.local.path=/prometheus
       - -web.console.libraries=/etc/prometheus/console_libraries
       - -web.console.templates=/etc/prometheus/consoles
+      # TODO memory usage verringern. 
+      #- -storage.local.target-heap-size=104857600 # 100 MB.
       #- -storage.remote.influxdb-url=http://influx:8086 -> invalid URL ??? WTF!
       # *banging head against table* -> https://github.com/prometheus/prometheus/issues/2022  
       - -storage.remote.influxdb-url=http://influx:8086 
@@ -66,18 +68,6 @@ services:
       - -storage.remote.influxdb.username=username      
     environment: 
       - INFLUXDB_PW=password
-    
-  filter-proxy:
-    image: cproinger/sanalytics-filter-proxy
-    ports: 
-      - "8180:8080"  
-    networks:
-      - monitoring_overlay
-      - platform_overlay
-    depends_on: 
-      - cadvisor
-    environment: 
-      - JAVA_OPTS=-Xmx256m -Dsanalytics.slice.label=container_label_com_docker_stack_namespace -Dtarget.dnsname=tasks.cadvisor    
     
 networks:
   app_overlay: 

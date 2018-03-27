@@ -45,7 +45,7 @@ public class MermaidGraphDescriptionController {
 		Slice s = repo.findOne(id);
 		if(s == null)
 			s = new Slice(id);
-		
+
 		s.setGraphDefinition(body);
 		repo.save(s);
 		return new ResponseEntity<>(body, HttpStatus.OK);

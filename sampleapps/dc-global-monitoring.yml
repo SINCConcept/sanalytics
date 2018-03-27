@@ -1,0 +1,49 @@
+version: "3"
+services:
+
+
+# ---------- global monitoring services ---------------
+  influx: 
+    image: influxdb:1.5.1-alpine
+    deploy: 
+      resources: 
+        limits: 
+          memory: 400M
+          cpus: "1.0"    
+    ports: 
+      - "8083:8083"
+      - "8086:8086" 
+    volumes: 
+      - /c/Users/cproinger/Documents/Docker/influx:/var/lib/influxdb
+    networks:
+      - monitoring_overlay    
+    environment:
+      - INFLUXDB_ADMIN_ENABLED=true
+      - INFLUXDB_DB=mytestdb
+      - INFLUXDB_USER=username 
+      - INFLUXDB_USER_PASSWORD=password
+
+  grafana: 
+    #image: grafana/grafana
+    image: monitoringartist/grafana-xxl:4.3
+    deploy: 
+      resources: 
+        limits: 
+          memory: 180M
+          cpus: "1.0"    
+    depends_on: 
+      - influx
+    ports: 
+      - "3000:3000"
+    volumes: 
+      - /c/Users/cproinger/Documents/Docker/grafana:/var/lib/grafana
+    networks: 
+      - monitoring_overlay      
+    
+networks:
+  app_overlay: 
+  monitoring_overlay: 
+    labels: # does not help me much, i was hoping this would show up in the cadvisor metrics but no
+      - "at.ac.tuwien.dsg.analytics.net=monitoring_overlay"
+  platform_overlay:
+    external: true

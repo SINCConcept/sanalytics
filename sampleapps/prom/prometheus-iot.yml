@@ -9,24 +9,18 @@ rule_files:
   - /etc/prometheus/sample.rules
 
 scrape_configs:
-  - job_name: 'nodex'
-    dns_sd_configs:
-    - names: 
-      - 'tasks.nodex'
-      type: 'A'
-      port: 9100
-
-  # The job name is added as a label `job=<job_name>` to any timeseries scraped from this config.
   - job_name: 'iotPlatform'
-    metrics_path: '/metrics/iotstack'
+    metrics_path: '/federate'
+    honor_labels: true
+    params:
+      'match[]':
+        - '{cl_cd_stack_namespace="iotstack"}'
     static_configs:
-      - targets: ['iotstack_filter-proxy:8080']
-    metric_relabel_configs: 
-    - regex: 'container_label_com_docker_(.*)'
-      action: labelmap
-      replacement: 'cl_cd_${1}'      
+      - targets: ['prom_platform:9090']   
 
-  # The job name is added as a label `job=<job_name>` to any timeseries scraped from this config.
   - job_name: 'iot2nfvBridge'
-    static_configs:
-      - targets: ['iotstack_iot2nfvBridge:8080']
+    dns_sd_configs:
+    - names:
+      - 'tasks.iotstack_iot2nfvBridge'
+      type: 'A'
+      port: 8080

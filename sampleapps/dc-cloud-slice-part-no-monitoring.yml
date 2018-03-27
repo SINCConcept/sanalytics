@@ -43,18 +43,14 @@ services:
       resources: 
         limits: 
           memory: 180M
-          cpus: "0.25"
+          cpus: "0.5"
     ports:
       - "8081:8080"
     networks:
       - app_overlay   
     environment: 
       - JAVA_OPTS=-server -Xmx100m -XX:MaxMetaspaceSize=64m -Dspring.profiles.active=inbound-rabbitmq,forwarder,outbound-mongo -Dspring.rabbitmq.host=rabbitmq -Dspring.rabbitmq.username=guest -Dspring.rabbitmq.password=guest -Dspring.data.mongodb.uri=mongodb://mymongodb:27017/events
-    
+
+
 networks:
   app_overlay: 
-  monitoring_overlay: 
-    labels: # does not help me much, i was hoping this would show up in the cadvisor metrics but no
-      - "at.ac.tuwien.dsg.analytics.net=monitoring_overlay"
-  platform_overlay:
-    external: true

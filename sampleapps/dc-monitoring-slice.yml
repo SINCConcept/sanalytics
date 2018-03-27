@@ -2,12 +2,12 @@ version: "3"
 services:
 
   prometheus:
-    #docker service create -p 9090:9090 --mount type=bind,source=/mastergit/sanalytics/sampleapps/prom/prometheus.yml,target=/etc/prometheus/prometheus.yml --name=prometheus --network="custom_monitoring" --network="mystack_app_overlay" --env INFLUXDB_PW=password --container-label sanalytics.slice="slice0" prom/prometheus -config.file=/etc/prometheus/prometheus.yml -storage.local.path=/prometheus -web.console.libraries=/etc/prometheus/console_libraries -web.console.templates=/etc/prometheus/consoles -storage.remote.influxdb-url http://influx:8086 -storage.remote.influxdb.database mytestdb -storage.remote.influxdb.retention-policy "autogen" -storage.remote.influxdb.username username 
-    image: prom/prometheus
+    #docker service create -p 9090:9090 --mount type=bind,source=/mastergit/sanalytics/sampleapps/prom/prometheus:v1.5.3.yml,target=/etc/prometheus/prometheus.yml --name=prometheus --network="custom_monitoring" --network="mystack_app_overlay" --env INFLUXDB_PW=password --container-label sanalytics.slice="slice0" prom/prometheus:v1.5.3 -config.file=/etc/prometheus/prometheus.yml -storage.local.path=/prometheus -web.console.libraries=/etc/prometheus/console_libraries -web.console.templates=/etc/prometheus/consoles -storage.remote.influxdb-url http://influx:8086 -storage.remote.influxdb.database mytestdb -storage.remote.influxdb.retention-policy "autogen" -storage.remote.influxdb.username username 
+    image: prom/prometheus:v1.5.3
     ports: 
       - "9090:9090"  
     volumes: 
-      - /mastergit/sanalytics/sampleapps/prom/prometheus.yml:/etc/prometheus/prometheus.yml
+      - /mastergit/sanalytics/sampleapps/prom/prometheus:v1.5.3.yml:/etc/prometheus/prometheus.yml
     networks:
       - mystack_app_overlay
       - custom_monitoring
@@ -44,16 +44,20 @@ services:
 
 #docker service create -p 8083:8083 -p 8086:8086  --network="custom_monitoring" --name influx 
 # --mount type=bind,source=/c/Users/cproinger/Documents/Docker/test_data/influxdb,target=/influx_test_data  
-# --mount type=bind,source=/c/Users/cproinger/Documents/Docker/influx,target=/var/lib/influxdb --container-label sanalytics.slice="slice0" influxdb:1.1.0
+# --mount type=bind,source=/c/Users/cproinger/Documents/Docker/influx,target=/var/lib/influxdb --container-label sanalytics.slice="slice0" influxdb:1.5.1
   influx: 
-    image: influxdb:1.1.0
+    image: influxdb:1.5.1
     ports: 
       - "8083:8083"
       - "8086:8086" 
     volumes: 
       - /c/Users/cproinger/Documents/Docker/influx:/var/lib/influxdb
     networks:
-        - custom_monitoring    
+        - custom_monitoring   
+    environment:
+      - INFLUXDB_DB=mytestdb
+      - INFLUXDB_USER=username 
+      - INFLUXDB_USER_PASSWORD=password 
 
 #docker service create \
 #  -p 3000:3000 \
