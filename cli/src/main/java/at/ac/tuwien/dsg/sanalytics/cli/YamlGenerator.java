@@ -18,26 +18,27 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
+import at.ac.tuwien.dsg.sanalytics.cli.PrometheusConfigFactory.PlatformScrapeConfig;
 import at.ac.tuwien.dsg.sanalytics.cli.dockercompose.DockerComposeConfig;
 import at.ac.tuwien.dsg.sanalytics.cli.promconfig.PrometheusConfig;
 
 public class YamlGenerator {
 
 	public static void main(String[] args) throws JsonGenerationException, JsonMappingException, IOException {
-		
+
 		YAMLFactory yamlFactory = new YAMLFactory();
 		ObjectMapper om = new ObjectMapper(yamlFactory).setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE);
-
 		File src = new File("src/test/resources/docker-compose-example.yml");
 		// yamlFactory.createJsonParser(src).nextToken()
 		DockerComposeConfig dockerCompose = om.readValue(src, DockerComposeConfig.class);
 
 		// om.writeValue(System.out, dockerCompose);
-
-		PrometheusConfig c = PrometheusConfigFactory.createFrom(dockerCompose);
-
+		PrometheusConfig c = PrometheusConfigFactory.withPlatformScrapeConfig(PlatformScrapeConfig.FEDERATE)
+				.createFrom(dockerCompose.getSanalyticsExtension(), dockerCompose);
+		
 		File resultDir = new File("target/output/");
 		resultDir.mkdirs();
+		
 		File outFile = resultDir.toPath().resolve(toNoExtensionFilename(src) + ".prometheus-config.yml").toFile();
 		om.writeValue(outFile, c);
 		MermaidJSConfiggFactory.createFrom(dockerCompose);
@@ -54,8 +55,8 @@ public class YamlGenerator {
 		Map<String, Object> map = (Map<String, Object>) yaml.load(new FileInputStream(src));
 		Map<String, Object> sAnalyticsMap = (Map<String, Object>) map.get("x-sanalytics");
 		sAnalyticsMap.put("test", "value");
-		yaml.dump(map,
-				new FileWriter(resultDir.toPath().resolve(toNoExtensionFilename(src) + ".sanalytics-enhanced.yml").toFile()));
+		yaml.dump(map, new FileWriter(
+				resultDir.toPath().resolve(toNoExtensionFilename(src) + ".sanalytics-enhanced.yml").toFile()));
 	}
 
 	private static String toNoExtensionFilename(File src) {

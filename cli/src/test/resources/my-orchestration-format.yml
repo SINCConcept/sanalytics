@@ -1,0 +1,148 @@
+version: "1.0"
+
+subslices: 
+  cloud: 
+    services:
+    
+    # ---------- application services ---------------
+      mymongodb:
+        image: cproinger/mongo-with-prom-exporter
+        deploy:
+          labels:
+            at.ac.tuwien.dsg.sanalytics.metricsport : "9100"
+          resources: 
+            limits: 
+              memory: 200M
+              cpus: "0.25"
+        ports:
+          - "27017:27017"
+        networks:
+          - app_overlay
+          
+      rabbitmq: 
+        image: cproinger/rabbitmq-management-monitoring
+        deploy: 
+          labels: 
+            at.ac.tuwien.dsg.sanalytics.metricsport : "15672"
+          resources: 
+            limits: 
+              memory: 120M
+              cpus: "0.25"
+        ports: 
+          - "5672:5672"
+          - "15672:15672"      
+        networks:
+          - app_overlay   
+          
+      rabbit2mongo:
+        depends_on:
+          - mymongodb
+          - rabbitmq
+        image: cproinger/sample-bridge
+        deploy: 
+          labels: 
+            at.ac.tuwien.dsg.sanalytics.metricsport : "8080"
+          resources: 
+            limits: 
+              memory: 180M
+              cpus: "0.5"
+        ports:
+          - "8081:8080"
+        networks:
+          - app_overlay   
+        environment: 
+          - JAVA_OPTS=-server -Xmx100m -XX:MaxMetaspaceSize=64m -Dspring.profiles.active=inbound-rabbitmq,forwarder,outbound-mongo -Dspring.rabbitmq.host=rabbitmq -Dspring.rabbitmq.username=guest -Dspring.rabbitmq.password=guest -Dspring.data.mongodb.uri=mongodb://mymongodb:27017/events
+    
+    
+    networks:
+      app_overlay: 
+
+# ---------- application services ---------------
+  nfv: 
+    services:      
+      cep:
+        depends_on:
+          - nfv_mqtt
+        image: cproinger/sample-bridge
+        deploy: 
+          labels: 
+            at.ac.tuwien.dsg.sanalytics.metricsport : "8080"
+          resources: 
+            limits: 
+              memory: 180M
+              cpus: "0.1"
+        ports:
+          - "8082:8080"
+        networks:
+          - app_overlay  
+          - cloudstack_app_overlay 
+        environment: 
+          - JAVA_OPTS=-server -Xmx100m -XX:MaxMetaspaceSize=64m -Dspring.profiles.active=inbound-mqtt,esper-cep,outbound-rabbitmq -Dinbound-mqtt.brokerURL=tcp://nfvstack_mqtt:1883 -Dinbound-mqtt.subscriptions=sensor/+/randomcount -Dspring.rabbitmq.host=cloudstack_rabbitmq -Dspring.rabbitmq.username=guest -Dspring.rabbitmq.password=guest
+        
+        
+      nfv_mqtt:
+        image: toke/mosquitto:release-1.4.10-2
+        deploy: 
+          labels: 
+            at.ac.tuwien.dsg.sanalytics.active : "false"
+          resources: 
+            limits: 
+              memory: 10M
+              cpus: "0.5"          
+        ports:
+          - "1883:1883"
+        networks:
+          - app_overlay   
+    
+    networks:
+      app_overlay:
+      cloudstack_app_overlay:
+        external: true    
+        
+  iot:
+    services:
+    # ---------- application services ---------------
+      iot_mqtt:
+        image: toke/mosquitto:release-1.4.10-2
+        deploy: 
+          resources: 
+            limits: 
+              memory: 10M
+        ports:
+          - "1884:1883"
+        networks:
+          - iot_overlay      
+        
+      sensor:
+        depends_on:
+          - iot_mqtt
+        image: cproinger/sample-sensor
+        deploy: 
+          resources: 
+            limits: 
+              memory: 128M
+        networks:
+          - iot_overlay
+        environment: 
+          - JAVA_OPTS=-Xmx16m -Dspring.profiles.active=random -Dmqtt.brokerURL=tcp://iotstack_iot_mqtt:1883     
+          
+      iot2nfvBridge:
+        depends_on:
+          - iot_mqtt
+        image: cproinger/sample-bridge
+        deploy: 
+          labels: 
+            at.ac.tuwien.dsg.sanalytics.metricsport : "8080"
+          resources: 
+            limits: 
+              memory: 128M
+        networks:
+          - iot_overlay
+          - nfvstack_app_overlay
+        environment: 
+          - JAVA_OPTS=-Xmx100m -Dspring.profiles.active=inbound-mqtt,forwarder,outbound-mqtt -Dinbound-mqtt.brokerURL=tcp://iotstack_iot_mqtt:1883 -Doutbound-mqtt.brokerURL=tcp://nfvstack_nfv_mqtt:1883      
+        
+    networks:
+      iot_overlay: 
+      nfvstack_app_overlay:
+        external: true 

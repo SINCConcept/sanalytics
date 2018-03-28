@@ -1,3 +1,5 @@
+
+
 version: "3.4"
 x-sanalytics:
   slicename: "slice1"
@@ -43,7 +45,7 @@ services:
   rabbit2mongo:
     depends_on:
       - mymongodb
-      - mqtt
+      - rabbitmq
     image: cproinger/sample-bridge
     deploy: 
       labels: 
