@@ -39,6 +39,12 @@
 			<artifactId>flyway-core</artifactId>
 			<version>4.1.2</version>
 		</dependency>
+		
+		<dependency>
+			<groupId>at.ac.tuwien.dsg.sanalytics</groupId>
+			<artifactId>sanalytics-generator</artifactId>
+			<version>${project.version}</version>
+		</dependency>
 	</dependencies>
 
 	<build>
