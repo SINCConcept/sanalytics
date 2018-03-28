@@ -1,0 +1,1 @@
+docker stack deploy -c dc-global-monitoring.yml globalmonstack

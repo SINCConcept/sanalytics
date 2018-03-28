@@ -8,9 +8,9 @@ public interface HasServiceLabels {
 	 * <ul>
 	 * <li>at.ac.tuwien.dsg.sanalytics.slicemon.active=true/false ... to
 	 * enable/disable the prom-scrape-config</li>
-	 * <li>at.ac.tuwien.dsg.sanalytics.slicemon.metricspath=/metrics</li>
-	 * <li>at.ac.tuwien.dsg.sanalytics.slicemon.metricsport=default</li>
-	 * <li>at.ac.tuwien.dsg.sanalytics.slicemon.vm=none|yes ... because memory
+	 * <li>at.ac.tuwien.dsg.sanalytics.metricspath=/metrics</li>
+	 * <li>at.ac.tuwien.dsg.sanalytics.metricsport=default</li>
+	 * <li>at.ac.tuwien.dsg.sanalytics.vm=none|yes ... because memory
 	 * monitoring is different for vm-apps as for native apps.</li>
 	 * </ul>
 	 */

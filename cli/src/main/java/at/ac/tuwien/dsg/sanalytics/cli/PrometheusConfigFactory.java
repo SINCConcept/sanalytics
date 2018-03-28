@@ -23,10 +23,15 @@ public class PrometheusConfigFactory {
 		/**
 		 * No HA-Proxy in between that handles the filtering
 		 */
-		FEDERATE, METRICS
+		FEDERATE,
+		/**
+		 * use simple metrics endpoint if filtering HA-Proxy is in place. 
+		 */
+		METRICS;
 	}
 
 	private PlatformScrapeConfig platformScrapeConfig;
+	private String promPlatformTarget = "prom_platform:9090";
 
 	public PrometheusConfigFactory(PlatformScrapeConfig platformScrapeConfig) {
 		this.platformScrapeConfig = platformScrapeConfig;
@@ -43,8 +48,7 @@ public class PrometheusConfigFactory {
 		// String subsliceName = "cloud";
 		String slicename = subsliceId.getSlicename();
 		String subsliceName = subsliceId.getSubslice();
-		GlobalConfig global = createPrometheusGlobalConig(slicename, subsliceName);
-		c.setGlobal(global);
+		c.setGlobal(createPrometheusGlobalConig(slicename, subsliceName));
 
 		ScrapeConfig scrapeConf = createPromPlatformScrapeConfig(slicename, subsliceName);
 		c.getScrapeConfigs().add(scrapeConf);
@@ -92,11 +96,17 @@ public class PrometheusConfigFactory {
 		ScrapeConfig scrapeConf = new ScrapeConfig();
 		scrapeConf.setJobName(subsliceName + "Platform");
 		scrapeConf.setHonorLabels(true);
-		scrapeConf.setMetricsPath("/federate");
-		scrapeConf.setParams(createMapFrom("match[]", "{cl_aatd_sanalytics_slice=\"" + slicename + "\"}",
-				"{cl_aatd_sanalytics_subslice=\"" + subsliceName + "\"}"));
+
+		if (platformScrapeConfig == PlatformScrapeConfig.FEDERATE) {
+			scrapeConf.setMetricsPath("/federate");
+			scrapeConf.setParams(createMapFrom("match[]", "{cl_aatd_sanalytics_slice=\"" + slicename + "\"}",
+					"{cl_aatd_sanalytics_subslice=\"" + subsliceName + "\"}"));
+		} else {
+			scrapeConf.setMetricsPath("/metrics");
+		}
+
 		StaticConfig staticConf = new StaticConfig();
-		staticConf.setTargets(Arrays.asList("prom_platform:9090"));
+		staticConf.setTargets(Arrays.asList(promPlatformTarget));
 		scrapeConf.setStaticConfigs(Arrays.asList(staticConf));
 		return scrapeConf;
 	}

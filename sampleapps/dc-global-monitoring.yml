@@ -25,7 +25,7 @@ services:
 
   grafana: 
     #image: grafana/grafana
-    image: monitoringartist/grafana-xxl:4.3
+    image: monitoringartist/grafana-xxl:4.6
     deploy: 
       resources: 
         limits: 

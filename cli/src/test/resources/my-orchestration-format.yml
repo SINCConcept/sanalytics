@@ -63,6 +63,7 @@ subslices:
       cep:
         depends_on:
           - nfv_mqtt
+          - rabbitmq
         image: cproinger/sample-bridge
         deploy: 
           labels: 
@@ -129,6 +130,7 @@ subslices:
       iot2nfvBridge:
         depends_on:
           - iot_mqtt
+          - nfv_mqtt
         image: cproinger/sample-bridge
         deploy: 
           labels: 
