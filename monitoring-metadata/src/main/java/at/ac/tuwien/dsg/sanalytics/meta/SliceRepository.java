@@ -1,7 +1,9 @@
 package at.ac.tuwien.dsg.sanalytics.meta;
 
-import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.repository.PagingAndSortingRepository;
+import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 
-public interface SliceRepository extends CrudRepository<Slice, String>{
+@RepositoryRestResource
+public interface SliceRepository extends PagingAndSortingRepository<Slice, String>{
 
 }
