@@ -96,7 +96,7 @@ FOR 80s
 LABELS { severity = "warn" }
   ANNOTATIONS {
     summary = "Instance {{ $labels.instance }} down",
-    description = "{{ $labels.instance }} of job {{ $labels.job }} has been down for more than 40 seconds.",
+    description = "{{ $labels.instance }} of job {{ $labels.job }} has been down for more than 80 seconds.",
   }
   
 ALERT sla_violated

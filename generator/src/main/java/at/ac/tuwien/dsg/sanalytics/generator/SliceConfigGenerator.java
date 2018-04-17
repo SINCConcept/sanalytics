@@ -5,6 +5,7 @@ import java.io.Reader;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -26,6 +27,8 @@ import at.ac.tuwien.dsg.sanalytics.generator.promconfig.RemoteReadWrite;
 import at.ac.tuwien.dsg.sanalytics.generator.sliceconfig.GlobalMonitoringConfiguration;
 
 public class SliceConfigGenerator {
+	private static final String MONITORINGNET = "monitoringnet";
+
 	private static final String DOCKER_COMPOSE_VERSION = "3.4";
 
 	private final static java.util.logging.Logger LOG = java.util.logging.Logger
@@ -94,6 +97,13 @@ public class SliceConfigGenerator {
 					}
 					labels.put("at.ac.tuwien.dsg.sanalytics.slice", subsliceId.getSlicename());
 					labels.put("at.ac.tuwien.dsg.sanalytics.subslice", subsliceId.getSubslice());
+
+					List<String> networks = (List<String>) service.get("networks");
+					if (networks == null) {
+						networks = new ArrayList<>();
+						service.put("networks", networks);
+					}
+					networks.add(MONITORINGNET);
 				}
 			}
 			// add prometheus
@@ -104,6 +114,13 @@ public class SliceConfigGenerator {
 				services.put("prometheus", prometheusService);
 			}
 
+			HashMap<String, Object> networks = (LinkedHashMap<String, Object>) subslice.get("networks");
+			if (networks == null) {
+				networks = new LinkedHashMap<>();
+				subslice.put("networks", networks);
+			}
+			networks.put(MONITORINGNET, null);
+			
 			// dump the docker file
 			try (Writer writer = writerProvider.getWriter(subsliceName, "docker-compose.yml")) {
 				yaml.dump(subslice, writer);
@@ -172,12 +189,12 @@ public class SliceConfigGenerator {
 		List<String> volumes = new ArrayList<>();
 		// rules and config (hm. relative mount? or create config?)
 		// or use volume?
-		volumes.add("./prom/conf/" + ":/etc/prometheus/");
+		volumes.add("./prometheus/conf/" + ":/etc/prometheus/");
 		// data-directory
 		// prometheus doesn't like it if this path is a folder on a windows machine
 		// shared with the VM docker is running on. 
 		// volumes.add("/c/Users/cproinger/Documents/Docker/prom/cloud:/prometheus");
-		volumes.add("./prom/data/" + subsliceName + ":/prometheus");
+		volumes.add("./prometheus/data/" + ":/prometheus");
 		prometheusService.put("volumes", volumes);
 
 		List<String> commands = new ArrayList<>();
@@ -204,6 +221,10 @@ public class SliceConfigGenerator {
 		List<String> envVars = new ArrayList<>();
 		envVars.add("INFLUXDB_PW=" + globalMonConf.getRemoteWrite().getBasicAuth().getPassword());
 		prometheusService.put("environment", envVars);
+		
+		List<String> networks = new ArrayList<>();
+		networks.add(MONITORINGNET);
+		prometheusService.put("networks", networks);
 		
 		return prometheusService;
 	}

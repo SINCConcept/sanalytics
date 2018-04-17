@@ -73,11 +73,11 @@ public class PlatformSetupController {
 		sb.append("mkdir -p ./platform/prometheus/conf").append('\n');
 		sb.append("mkdir -p ./platform/prometheus/data").append('\n');
 
-		String baseUrl = getBaseUrl(req);
-		sb.append("curl -sSL " + baseUrl + "platform/prometheus-platform.yml "
+		String baseUrl = ControllerUtils.getBaseUrl(req);
+		sb.append(Scripts.CURL_S_SL + baseUrl + "platform/prometheus-platform.yml "
 				+ "> ./platform/prometheus/conf/prometheus-platform.yml").append('\n');
 
-		sb.append("curl -sSL " + baseUrl + "platform/prometheus-platform.rules "
+		sb.append(Scripts.CURL_S_SL + baseUrl + "platform/prometheus-platform.rules "
 				+ "> ./platform/prometheus/conf/platform.rules").append('\n');
 
 		String platformPrometheus = "${PWD}/platform/prometheus/";
@@ -94,13 +94,5 @@ public class PlatformSetupController {
 
 		String body = sb.toString();
 		return new ResponseEntity<String>(body, HttpStatus.OK);
-	}
-	
-	public static String getBaseUrl(HttpServletRequest req) {
-		StringBuffer url = req.getRequestURL();
-		String uri = req.getRequestURI();
-		String ctx = req.getContextPath();
-		String base = url.substring(0, url.length() - uri.length() + ctx.length()) + "/";
-		return base;
 	}
 }
