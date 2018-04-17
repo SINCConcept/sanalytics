@@ -1,0 +1,19 @@
+platform_default_container_cpu_quota = 100000
+
+platform_container_spec_cpus = (container_spec_cpu_quota or (container_cpu_user_seconds_total * 0 + scalar(platform_default_container_cpu_quota))) / 100000
+#platform_container_cpu_percent = (sum(rate(container_cpu_user_seconds_total[1m])) by (cl_cd_swarm_service_name, cl_cd_swarm_task_name)) / ignoring(cl_cd_swarm_service_name, cl_cd_swarm_task_name) group_left count(node_cpu{mode="system"})  * 100
+
+# rate(container_cpu_user_seconds_total[1m]) ... if 1 then it used 1 full cpu for the minute
+#	or rather the sum of user and cpu seconds. 
+# so depending on the cpus defined in the spec this gives us 
+# the per-container cpu usage. 
+
+# if cadvisor does not give us a spec value we at least get this
+container_cpu_percent = rate(container_cpu_system_seconds_total[1m])  + rate(container_cpu_user_seconds_total[1m]) * 100.0
+# this value is normalized to the spec value (=docker-limit)
+container_cpu_percent_of_spec = (rate(container_cpu_system_seconds_total[1m])  + rate(container_cpu_user_seconds_total[1m])) / platform_container_spec_cpus * 100.0
+# gives either value normalized to the spec or the bare value (400 = 4 cpus fully used)
+container_cpu_percent_any = container_cpu_percent_of_spec or container_cpu_percent
+
+# ============ memory =========
+container_memory_percent = container_memory_usage_bytes / container_spec_memory_limit_bytes < Inf

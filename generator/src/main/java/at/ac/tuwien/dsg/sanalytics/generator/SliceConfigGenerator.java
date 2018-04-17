@@ -1,7 +1,5 @@
 package at.ac.tuwien.dsg.sanalytics.generator;
 
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
@@ -22,54 +20,63 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
 import at.ac.tuwien.dsg.sanalytics.generator.PrometheusConfigFactory.PlatformScrapeConfig;
 import at.ac.tuwien.dsg.sanalytics.generator.dockercompose.DockerComposeConfig;
+import at.ac.tuwien.dsg.sanalytics.generator.promconfig.BasicAuth;
 import at.ac.tuwien.dsg.sanalytics.generator.promconfig.PrometheusConfig;
+import at.ac.tuwien.dsg.sanalytics.generator.promconfig.RemoteReadWrite;
+import at.ac.tuwien.dsg.sanalytics.generator.sliceconfig.GlobalMonitoringConfiguration;
 
-public class Generator {
+public class SliceConfigGenerator {
 	private static final String DOCKER_COMPOSE_VERSION = "3.4";
 
-	private final static java.util.logging.Logger LOG = java.util.logging.Logger.getLogger(Generator.class.getName());
-	
-	private Yaml yaml;
-	private ObjectMapper mapper;
-	// TODO
+	private final static java.util.logging.Logger LOG = java.util.logging.Logger
+			.getLogger(SliceConfigGenerator.class.getName());
+
+	private final Yaml yaml;
+	private final ObjectMapper mapper;
 	private final String sliceId;
 	private final Reader orchestrationFormatReader;
+	private final WriterProvider writerProvider;
 
-	private WriterProvider writerProvider;
-
-	public Generator(String sliceId, Reader orchestrationFormatReader, WriterProvider writerProvider) {
+	public SliceConfigGenerator(String sliceId, Reader orchestrationFormatReader,
+			WriterProvider writerProvider) {
 		this.sliceId = sliceId;
 		this.orchestrationFormatReader = orchestrationFormatReader;
 		this.writerProvider = writerProvider;
-		
+
 		DumperOptions options = new DumperOptions();
 		options.setDefaultFlowStyle(FlowStyle.BLOCK);
 		yaml = new Yaml(options);
-		
-		mapper = new ObjectMapper(new YAMLFactory()).setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE);
+
+		mapper = new ObjectMapper(new YAMLFactory())
+				.setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE);
 	}
 
 	public void generate() throws IOException {
 
 		Map<String, Object> conf = (Map<String, Object>) yaml.load(orchestrationFormatReader);
 
+		GlobalMonitoringConfiguration globalMonConf = extractGlobalMonitoringConfiguration(conf);
+
 		Map<String, Object> subslices = (Map<String, Object>) conf.get("subslices");
 		LOG.info("identified sub-slices: " + subslices.keySet());
-		
+
 		Map<String, DockerComposeConfig> dockerComposeConfigs = new LinkedHashMap<>();
 
 		for (Entry<String, Object> entry : subslices.entrySet()) {
-			Map<String, Object> subslice = copyWithDockerComposeVersion((Map<String, Object>) entry.getValue());
+			Map<String, Object> subslice = copyWithDockerComposeVersion(
+					(Map<String, Object>) entry.getValue());
 			String subsliceName = entry.getKey();
 
 			// write prometheus config
 			DockerComposeConfig dcc = mapper.convertValue(subslice, DockerComposeConfig.class);
 			SubsliceId subsliceId = new SimpleSubliceId(sliceId, entry.getKey());
 			PrometheusConfig promConfig = PrometheusConfigFactory
-					.withPlatformScrapeConfig(PlatformScrapeConfig.FEDERATE).createFrom(subsliceId, dcc);
+					.withPlatformScrapeConfig(PlatformScrapeConfig.FEDERATE)
+					.createFrom(subsliceId, dcc);
 
 			// we use a copy so we can modify it later on.
-			dockerComposeConfigs.put(entry.getKey(), mapper.convertValue(subslice, DockerComposeConfig.class));
+			dockerComposeConfigs.put(entry.getKey(),
+					mapper.convertValue(subslice, DockerComposeConfig.class));
 
 			try (Writer writer = writerProvider.getWriter(subsliceName, "prometheus.yml")) {
 				mapper.writeValue(writer, promConfig);
@@ -92,12 +99,13 @@ public class Generator {
 			// add prometheus
 			{
 				Map<String, Object> services = (Map<String, Object>) subslice.get("services");
-				Map<String, Object> prometheusService = createPrometheusService();
+				Map<String, Object> prometheusService = createPrometheusService(subsliceName,
+						globalMonConf);
 				services.put("prometheus", prometheusService);
 			}
 
 			// dump the docker file
-			try (Writer writer = writerProvider.getWriter(subsliceName,"docker-compose.yml")) {
+			try (Writer writer = writerProvider.getWriter(subsliceName, "docker-compose.yml")) {
 				yaml.dump(subslice, writer);
 			}
 
@@ -107,6 +115,23 @@ public class Generator {
 			writer.write(mermaidGraphDSLString);
 			writer.flush();
 		}
+
+	}
+
+	private GlobalMonitoringConfiguration extractGlobalMonitoringConfiguration(
+			Map<String, Object> conf) {
+		Map<String, Object> globalMon = (Map<String, Object>) conf.get("globalMonitoring");
+		if (globalMon == null) {
+			GlobalMonitoringConfiguration c = new GlobalMonitoringConfiguration();
+			RemoteReadWrite remoteWrite = new RemoteReadWrite();
+			remoteWrite.setUrl("http://influx:8086");
+			remoteWrite.setBasicAuth(new BasicAuth("username", "password"));
+			remoteWrite.setDatabase("mytestdb");
+			c.setRemoteWrite(remoteWrite);
+			return c;
+		}
+
+		return mapper.convertValue(conf, GlobalMonitoringConfiguration.class);
 
 	}
 
@@ -120,7 +145,11 @@ public class Generator {
 		return subslice;
 	}
 
-	private Map<String, Object> createPrometheusService() {
+	/**
+	 * @return docker-compose configuration for a sub-slice prometheus instance. 
+	 */
+	private Map<String, Object> createPrometheusService(String subsliceName,
+			GlobalMonitoringConfiguration globalMonConf) {
 		Map<String, Object> prometheusService = new LinkedHashMap<>();
 		prometheusService.put("image", "prom/prometheus:v1.5.3");
 		/*
@@ -141,26 +170,41 @@ public class Generator {
 		prometheusService.put("ports", Arrays.asList("9090"));
 
 		List<String> volumes = new ArrayList<>();
-		// rules and config
-		volumes.add("/mastergit/sanalytics/sampleapps/prom/:/etc/prometheus/");
+		// rules and config (hm. relative mount? or create config?)
+		// or use volume?
+		volumes.add("./prom/conf/" + ":/etc/prometheus/");
 		// data-directory
+		// prometheus doesn't like it if this path is a folder on a windows machine
+		// shared with the VM docker is running on. 
 		// volumes.add("/c/Users/cproinger/Documents/Docker/prom/cloud:/prometheus");
+		volumes.add("./prom/data/" + subsliceName + ":/prometheus");
 		prometheusService.put("volumes", volumes);
 
 		List<String> commands = new ArrayList<>();
-		commands.add("-config.file=/etc/prometheus/prometheus-cloud.yml");
+		// hm. use only prometheus.yml instead of prometheus-<subsliceName>.yml
+//		commands.add("-config.file=/etc/prometheus/prometheus-" + subsliceName + ".yml");
+		commands.add("-config.file=/etc/prometheus/prometheus.yml");
 		commands.add("-storage.local.path=/prometheus");
 		commands.add("-web.console.libraries=/etc/prometheus/console_libraries");
 		commands.add("-web.console.templates=/etc/prometheus/consoles");
-		commands.add("-storage.remote.influxdb-url=http://influx:8086");
-		commands.add("-storage.remote.influxdb.database=mytestdb");
-		commands.add("-storage.remote.influxdb.retention-policy=autogen");
-		commands.add("-storage.remote.influxdb.username=username");
+		
+		// from https://github.com/ContainerSolutions/prometheus-swarm-discovery/blob/master/docker-compose.yaml
+		commands.add("-storage.local.retention=2h");
+		commands.add("-storage.local.memory-chunks=1048576");
+		
+		commands.add("-storage.remote.influxdb-url=" + globalMonConf.getRemoteWrite().getUrl());
+		// TODO extract as parameters
+		commands.add("-storage.remote.influxdb.database=" + "mytestdb");
+		commands.add("-storage.remote.influxdb.retention-policy=" + "autogen");
+		
+		// auth
+		commands.add("-storage.remote.influxdb.username="
+				+ globalMonConf.getRemoteWrite().getBasicAuth().getUsername());
 		prometheusService.put("command", commands);
-
 		List<String> envVars = new ArrayList<>();
-		envVars.add("INFLUXDB_PW=password");
-
+		envVars.add("INFLUXDB_PW=" + globalMonConf.getRemoteWrite().getBasicAuth().getPassword());
+		prometheusService.put("environment", envVars);
+		
 		return prometheusService;
 	}
 }

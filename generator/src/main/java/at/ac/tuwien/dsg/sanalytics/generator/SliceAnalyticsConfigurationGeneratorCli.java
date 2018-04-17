@@ -14,7 +14,7 @@ public class SliceAnalyticsConfigurationGeneratorCli {
 		
 		try (FileReader fr = new FileReader(new File("src/test/resources/my-slice-description-format.yml"));) {
 			String sliceId = "slice1";
-			new Generator(sliceId, fr, new WriterProvider() {
+			new SliceConfigGenerator(sliceId, fr, new WriterProvider() {
 				
 				@Override
 				public Writer getWriter(String subsliceName, String file) throws IOException {

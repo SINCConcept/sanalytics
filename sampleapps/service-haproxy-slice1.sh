@@ -1,0 +1,1 @@
+docker service create --network=platform_overlay -p 9999:9090 --name haproxy-slice1 -e SANALYTICS_SLICE=slice1 -e SANALYTICS_SUBSLICE=cloud --config src=filterproxy,target="/usr/local/etc/haproxy/haproxy.cfg" haproxy:1.8.5-alpine

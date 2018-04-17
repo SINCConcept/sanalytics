@@ -39,6 +39,20 @@ services:
       - /c/Users/cproinger/Documents/Docker/grafana:/var/lib/grafana
     networks: 
       - monitoring_overlay      
+      
+  monitoring-metadata: 
+    image: cproinger/monitoring-metadata
+    deploy: 
+      resources: 
+        limits: 
+          memory: 260M
+          cpus: "0.25"    
+    ports: 
+      - "8080:8080"
+    networks: 
+      - monitoring_overlay
+    environment:
+      - JAVA_OPTS=-server -Xmx80m -XX:MaxMetaspaceSize=64m -Dspring.profiles.active=sample        
     
 networks:
   app_overlay: 

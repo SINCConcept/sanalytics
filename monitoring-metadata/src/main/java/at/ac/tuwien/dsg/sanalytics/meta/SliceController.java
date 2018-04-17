@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-import at.ac.tuwien.dsg.sanalytics.generator.Generator;
+import at.ac.tuwien.dsg.sanalytics.generator.SliceConfigGenerator;
 import at.ac.tuwien.dsg.sanalytics.generator.WriterProvider;
 
 @RestController
@@ -92,6 +92,7 @@ public class SliceController {
 				@Override
 				public Writer getWriter(String subsliceName, String file) throws IOException {
 					if (subsliceName == null) {
+						// the only thing not scoped to a subslice is the mermaid-file. 
 						return new SliceStringWriter(s::setGraphDefinition);
 					}
 					SubsliceMetadata subslice = s.getOrNewSubSlice(subsliceName);
@@ -101,7 +102,7 @@ public class SliceController {
 					return new SliceStringWriter(f::setContent);
 				}
 			};
-			new Generator(id, sr, writerProvider).generate();
+			new SliceConfigGenerator(id, sr, writerProvider).generate();
 		}
 		repo.save(s);
 		return new ResponseEntity<>(body, HttpStatus.OK);
