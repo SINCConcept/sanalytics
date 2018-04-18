@@ -21,7 +21,7 @@ import at.ac.tuwien.dsg.sanalytics.events.Command;
 public class ThymeleafConfig  {
 	
 	@MessagingGateway(
-			defaultRequestChannel = "outboundChannel"
+			defaultRequestChannel = "inboundChannel"
 //			defaultHeaders = @GatewayHeader(
 //					name = "mqtt_topic", 
 //					expression = "'sensor/' + @actualSensorName + '/randomcount'")
