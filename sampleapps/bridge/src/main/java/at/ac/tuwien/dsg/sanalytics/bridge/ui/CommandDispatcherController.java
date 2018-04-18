@@ -11,14 +11,20 @@ import org.springframework.web.context.annotation.RequestScope;
 
 import at.ac.tuwien.dsg.sanalytics.bridge.ui.ThymeleafConfig.CommandGateway;
 import at.ac.tuwien.dsg.sanalytics.events.Command;
+import io.prometheus.client.Counter;
 
 @Profile("command-dispatcher-ui")
 @Controller
-@RequestScope
 public class CommandDispatcherController {
 
 	@Autowired
 	private CommandGateway gateway;
+	
+	private Counter dispatchedCommands = Counter.build()
+			.name("commands_dispatched_total")
+			.labelNames("datapointId", "actuatorId", "command")
+			.help("The number of messages that have been bridged between input and output")
+			.register();
 	
 	@GetMapping("/command-dispatcher")
 	public String commandDispatcher(
@@ -33,6 +39,9 @@ public class CommandDispatcherController {
 	public String dispatchCommand(@ModelAttribute(name = "command") Command command,
 			Model model) {
 		gateway.sendCommand(command);
+		dispatchedCommands
+				.labels(command.getDatapointId(), command.getActuatorId(), command.getCommand())
+				.inc();
 		model.addAttribute("info", "successfully dispachted!");
 		return "command-dispatcher";
 	}

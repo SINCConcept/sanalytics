@@ -31,12 +31,14 @@ public class ForwardingBridge {
 	
 	private Counter bridgedMessages = Counter.build()
 			.name("forwarder_bridged_messages_total")
+			.labelNames("payloadClass")
 			.help("The number of messages that have been bridged between input and output")
 			.register();
 	
 	@ServiceActivator(inputChannel = "inboundChannel", outputChannel = "outboundChannel")
 	public Message<?> bridge(Message<?> m) {
-		bridgedMessages.inc();
+		String payloadClass = m.getPayload() == null ? null : m.getPayload().getClass().getName();
+		bridgedMessages.labels(payloadClass).inc();
 		return m;
 	}
 	
