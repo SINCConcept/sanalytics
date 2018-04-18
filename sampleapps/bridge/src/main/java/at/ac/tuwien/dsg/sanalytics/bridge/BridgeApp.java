@@ -1,9 +1,11 @@
 package at.ac.tuwien.dsg.sanalytics.bridge;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.context.embedded.EmbeddedServletContainerFactory;
 import org.springframework.boot.context.embedded.tomcat.TomcatEmbeddedServletContainerFactory;
 import org.springframework.boot.web.servlet.ServletRegistrationBean;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -13,7 +15,15 @@ import org.springframework.integration.annotation.IntegrationComponentScan;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.web.servlet.DispatcherServlet;
+import org.springframework.web.servlet.ViewResolver;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
+import org.thymeleaf.TemplateEngine;
+import org.thymeleaf.spring4.SpringTemplateEngine;
+import org.thymeleaf.spring4.resourceresolver.SpringResourceResourceResolver;
+import org.thymeleaf.spring4.templateresolver.SpringResourceTemplateResolver;
+import org.thymeleaf.spring4.view.ThymeleafViewResolver;
+import org.thymeleaf.templateresolver.ITemplateResolver;
 
 import io.prometheus.client.exporter.MetricsServlet;
 import io.prometheus.client.hotspot.DefaultExports;
@@ -41,12 +51,13 @@ import io.prometheus.client.hotspot.DefaultExports;
 @EnableIntegration
 @IntegrationComponentScan
 public class BridgeApp {
-	
+
 	public static void main(String[] args) {
-		ConfigurableApplicationContext ctx = new SpringApplicationBuilder(BridgeApp.class).run(args);
+		ConfigurableApplicationContext ctx = new SpringApplicationBuilder(BridgeApp.class)
+				.run(args);
 	}
 
-	//why is this needed???
+	// why is this needed???
 	@Bean
 	public EmbeddedServletContainerFactory servletContainerFactory() {
 		TomcatEmbeddedServletContainerFactory factory = new TomcatEmbeddedServletContainerFactory();
@@ -55,9 +66,11 @@ public class BridgeApp {
 	}
 
 	@Bean
-	public ServletRegistrationBean servletRegistrationBean() {
+	public ServletRegistrationBean metricsServletRegistrationBean() {
 		DefaultExports.initialize();
-		return new ServletRegistrationBean(new MetricsServlet(), "/metrics", "/metrics/");
+		ServletRegistrationBean srb = new ServletRegistrationBean(new MetricsServlet(), "/metrics",
+				"/metrics/");
+		return srb;
 	}
 
 	/**
@@ -75,6 +88,4 @@ public class BridgeApp {
 	public MessageChannel outboundChannel() {
 		return new DirectChannel();
 	}
-	
-	
 }

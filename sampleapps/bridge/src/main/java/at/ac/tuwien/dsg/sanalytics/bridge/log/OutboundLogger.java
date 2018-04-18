@@ -16,7 +16,7 @@ public class OutboundLogger {
 	@ServiceActivator(inputChannel = "outboundChannel")
 	public void log(GenericMessage<?> message) {
 		try {
-			LOG.info("" + (message == null ? null : message.getPayload().getClass()));
+			LOG.info("Payload " + (message == null ? null : message.getPayload().getClass()));
 			LOG.info("" + message);			
 		} catch(Exception e) {
 			LOG.error("", e);

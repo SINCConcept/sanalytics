@@ -1,1 +1,1 @@
- docker build -t cproinger/monitoring-metadata .
+docker build -t cproinger/monitoring-metadata .

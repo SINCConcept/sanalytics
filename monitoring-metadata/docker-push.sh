@@ -1,0 +1,1 @@
+docker push cproinger/monitoring-metdadata:latest

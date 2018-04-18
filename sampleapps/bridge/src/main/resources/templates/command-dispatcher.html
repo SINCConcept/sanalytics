@@ -1,0 +1,25 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<title>Command Dispatcher</title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+</head>
+<body>
+	<div>
+		<p th:if="${info != null}" th:text="${info}"/>
+	</div>
+
+	<form th:action="@{/command-dispatcher}" th:object="${command}" method="post">
+		<label for="datapoint">Actuator: </label>
+		<input type="text" th:field="*{actuatorId}"/>
+		<br/>
+		<label for="datapoint">Datapoint: </label>
+		<input type="text" th:field="*{datapointId}"/>
+		<br/>
+		<label for="datapoint">Command: </label>
+		<input type="text" th:field="*{command}" />
+		<br/>
+		<input type="submit" value="Dispatch Command" />
+	</form>
+</body>
+</html>

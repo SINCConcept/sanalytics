@@ -1,5 +1,15 @@
 version: "1.0"
 
+globalMonitoring: 
+  remote_write:
+    url: http://influx:8086
+    database: mytestdb
+    retention_policy: autogen
+    basic_auth:
+      username: username
+      password: password
+  network: globalmonstack_monitoring_overlay
+  
 subslices: 
   cloud: 
     services:

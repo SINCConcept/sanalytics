@@ -9,6 +9,9 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import lombok.Getter;
 import lombok.Setter;
 
+/**
+ * global conf in prometheus.yml
+ */
 @Getter
 @Setter
 @JsonInclude(value = Include.NON_NULL)

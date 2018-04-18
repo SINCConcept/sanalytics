@@ -211,7 +211,7 @@ public class SliceController {
 
 		// docker stack deploy
 		sb.append("echo 'SANALYTICS: deploying stack ").append(stackname).append("'").append('\n');
-		sb.append("#docker stack deploy -c ").append(stackYml).append(" ").append(stackname)
+		sb.append("docker stack deploy -c ").append(stackYml).append(" ").append(stackname)
 				.append('\n');
 
 		// move back out so we are in the same dir we started.

@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.apache.commons.lang3.StringUtils;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.DumperOptions.FlowStyle;
 import org.yaml.snakeyaml.Yaml;
@@ -120,6 +121,11 @@ public class SliceConfigGenerator {
 				subslice.put("networks", networks);
 			}
 			networks.put(MONITORINGNET, null);
+			if (StringUtils.isNotBlank(globalMonConf.getNetwork())) {
+				LinkedHashMap<String, Object> globalMonNet = new LinkedHashMap<>();
+				globalMonNet.put("external", true);
+				networks.put(globalMonConf.getNetwork(), globalMonNet);
+			}
 			
 			// dump the docker file
 			try (Writer writer = writerProvider.getWriter(subsliceName, "docker-compose.yml")) {
@@ -144,11 +150,12 @@ public class SliceConfigGenerator {
 			remoteWrite.setUrl("http://influx:8086");
 			remoteWrite.setBasicAuth(new BasicAuth("username", "password"));
 			remoteWrite.setDatabase("mytestdb");
+			remoteWrite.setRetentionPolicy("autogen");
 			c.setRemoteWrite(remoteWrite);
 			return c;
 		}
 
-		return mapper.convertValue(conf, GlobalMonitoringConfiguration.class);
+		return mapper.convertValue(globalMon, GlobalMonitoringConfiguration.class);
 
 	}
 
@@ -209,21 +216,27 @@ public class SliceConfigGenerator {
 		commands.add("-storage.local.retention=2h");
 		commands.add("-storage.local.memory-chunks=1048576");
 		
-		commands.add("-storage.remote.influxdb-url=" + globalMonConf.getRemoteWrite().getUrl());
+		final RemoteReadWrite remoteWrite = globalMonConf.getRemoteWrite();
+		commands.add("-storage.remote.influxdb-url=" + remoteWrite.getUrl());
 		// TODO extract as parameters
-		commands.add("-storage.remote.influxdb.database=" + "mytestdb");
-		commands.add("-storage.remote.influxdb.retention-policy=" + "autogen");
+		commands.add("-storage.remote.influxdb.database="
+				+ remoteWrite.getDatabase());
+		commands.add("-storage.remote.influxdb.retention-policy="
+				+ remoteWrite.getRetentionPolicy());
 		
 		// auth
 		commands.add("-storage.remote.influxdb.username="
-				+ globalMonConf.getRemoteWrite().getBasicAuth().getUsername());
+				+ remoteWrite.getBasicAuth().getUsername());
 		prometheusService.put("command", commands);
 		List<String> envVars = new ArrayList<>();
-		envVars.add("INFLUXDB_PW=" + globalMonConf.getRemoteWrite().getBasicAuth().getPassword());
+		envVars.add("INFLUXDB_PW=" + remoteWrite.getBasicAuth().getPassword());
 		prometheusService.put("environment", envVars);
 		
 		List<String> networks = new ArrayList<>();
 		networks.add(MONITORINGNET);
+		if (!StringUtils.isBlank(globalMonConf.getNetwork())) {
+			networks.add(globalMonConf.getNetwork());
+		}
 		prometheusService.put("networks", networks);
 		
 		return prometheusService;
