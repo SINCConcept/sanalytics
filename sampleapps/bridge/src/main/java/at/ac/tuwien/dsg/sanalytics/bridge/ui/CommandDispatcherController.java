@@ -23,7 +23,7 @@ public class CommandDispatcherController {
 	private Counter dispatchedCommands = Counter.build()
 			.name("commands_dispatched_total")
 			.labelNames("datapointId", "actuatorId", "command")
-			.help("The number of messages that have been bridged between input and output")
+			.help("The number of commands dispatched for the respective actuators, datapoints, commands-values")
 			.register();
 	
 	@GetMapping("/command-dispatcher")

@@ -5,6 +5,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
+import org.springframework.integration.annotation.GatewayHeader;
 import org.springframework.integration.annotation.MessagingGateway;
 import org.springframework.web.servlet.DispatcherServlet;
 import org.springframework.web.servlet.ViewResolver;
@@ -21,12 +22,12 @@ import at.ac.tuwien.dsg.sanalytics.events.Command;
 public class ThymeleafConfig  {
 	
 	@MessagingGateway(
-			defaultRequestChannel = "inboundChannel"
-//			defaultHeaders = @GatewayHeader(
-//					name = "mqtt_topic", 
-//					expression = "'sensor/' + @actualSensorName + '/randomcount'")
+			defaultRequestChannel = "inboundChannel",
+			defaultHeaders = @GatewayHeader(
+					name = "mqtt_topic", 
+					expression = "'actuator/' + #args[0].actuatorId")
 			)
-//	@Profile("esper-cep-datapoint")
+	@Profile("command-dispatcher-ui")
 	public interface CommandGateway {
 		void sendCommand(Command command);
 	}

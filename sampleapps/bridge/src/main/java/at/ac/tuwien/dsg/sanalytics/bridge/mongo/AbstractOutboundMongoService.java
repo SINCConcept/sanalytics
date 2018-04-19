@@ -7,7 +7,7 @@ public abstract class AbstractOutboundMongoService {
 
 	Counter eventsSent = Counter.build()
 			.name("mongo_events_saved_total")
-			.help("Total number of events saved to backend store")
+			.help("Total number of events saved to mongodb")
 			.register();
 	
 	
@@ -16,7 +16,7 @@ public abstract class AbstractOutboundMongoService {
             .quantile(0.9, 0.01)   // Add 90th percentile with 1% tolerated error
             .quantile(0.99, 0.001) // Add 99th percentile with 0.1% tolerated error
 			.name("mongo_events_saved_latency")
-			.help("Total number of events saved to backend store")
+			.help("Summary for the latency for saving events to mongodb")
 			.register();
 
 }

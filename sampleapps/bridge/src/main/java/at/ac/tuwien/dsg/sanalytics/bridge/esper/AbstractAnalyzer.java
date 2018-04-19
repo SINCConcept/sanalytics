@@ -11,6 +11,6 @@ public abstract class AbstractAnalyzer {
 	
 	Counter messages = Counter.build()
 			.name("cep_messages_processed_total")
-			.help("Total number of messages received via mqtt")
+			.help("Total number of messages received and processed")
 			.register();
 }

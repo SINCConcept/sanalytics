@@ -11,13 +11,13 @@
 
 	<form th:action="@{/command-dispatcher}" th:object="${command}" method="post">
 		<label for="datapoint">Actuator: </label>
-		<input type="text" th:field="*{actuatorId}"/>
+		<input type="text" th:field="*{actuatorId}" th:required="required"/>
 		<br/>
 		<label for="datapoint">Datapoint: </label>
-		<input type="text" th:field="*{datapointId}"/>
+		<input type="text" th:field="*{datapointId}" th:required="required"/>
 		<br/>
 		<label for="datapoint">Command: </label>
-		<input type="text" th:field="*{command}" />
+		<input type="text" th:field="*{command}" th:required="required"/>
 		<br/>
 		<input type="submit" value="Dispatch Command" />
 	</form>
