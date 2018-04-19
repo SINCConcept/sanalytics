@@ -20,7 +20,6 @@ public class StdInboundConfig {
 		return IntegrationFlows
 				.from(CharacterStreamReadingMessageSource.stdin(),
 						e -> e.poller(Pollers.fixedDelay(1000)))
-//				.wireTap("wireTap")
 				.channel(channel).get();
 	}
 }

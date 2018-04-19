@@ -15,6 +15,7 @@ import org.springframework.integration.annotation.IntegrationComponentScan;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.web.servlet.DispatcherServlet;
 import org.springframework.web.servlet.ViewResolver;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
@@ -71,21 +72,5 @@ public class BridgeApp {
 		ServletRegistrationBean srb = new ServletRegistrationBean(new MetricsServlet(), "/metrics",
 				"/metrics/");
 		return srb;
-	}
-
-	/**
-	 * every bridge has one inboundChannel
-	 */
-	@Bean
-	public MessageChannel inboundChannel() {
-		return new DirectChannel();
-	}
-
-	/**
-	 * every bridge has one outboundChannel
-	 */
-	@Bean
-	public MessageChannel outboundChannel() {
-		return new DirectChannel();
 	}
 }

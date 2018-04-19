@@ -15,5 +15,7 @@ container_cpu_percent_of_spec = (rate(container_cpu_system_seconds_total[1m])  +
 # gives either value normalized to the spec or the bare value (400 = 4 cpus fully used)
 container_cpu_percent_any = container_cpu_percent_of_spec or container_cpu_percent
 
+# TODO container_cpu_load_average_10s, is a new metric i guess
+
 # ============ memory =========
 container_memory_percent = container_memory_usage_bytes / container_spec_memory_limit_bytes < Inf
