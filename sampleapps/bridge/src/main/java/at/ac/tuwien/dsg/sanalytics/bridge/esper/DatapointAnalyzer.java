@@ -40,13 +40,13 @@ public class DatapointAnalyzer extends AbstractAnalyzer {
 			)
 	@Profile("esper-cep-datapoint")
 	public interface DatapointCEPResultGateway {
-		void sendEvent(DatapointCEPResult datapointCEPResult);
+		void sendEvent(Datapoint datapointCEPResult);
 	}
 	
 	private final static Logger LOG = LoggerFactory.getLogger(DatapointAnalyzer.class);
 	
 	private static final String DEFAULT_ESPER_SELECT 
-	= "select station, datapoint, avg(value) as avg "
+	= "select station, datapoint, avg(value) as value "
 			+ "from Datapoint.win:time_batch(60 sec) "
 			+ "group by station, datapoint "
 			+ "having avg(value) is not null";
@@ -90,10 +90,7 @@ public class DatapointAnalyzer extends AbstractAnalyzer {
 					if(m.size() == 0) {
 						continue;
 					}
-//					Datapoint dp = (Datapoint) eb.get
-//					//rcRepo.save(rc);
-					datapointGateway.sendEvent(new DatapointCEPResult(m));
-//					LOG.info(dp+ "");
+					datapointGateway.sendEvent(new Datapoint(m));
 					eventsSent.inc();
 				}
 			}
@@ -104,11 +101,16 @@ public class DatapointAnalyzer extends AbstractAnalyzer {
 	public void process(Message<?> message) {
 		messages.inc();
 		LOG.debug("message: " + message);
-		String sPayload = message.getPayload().toString();
-		Double v = Double.valueOf(sPayload);
-		// something like /sensor/<station_id>/datapoint/<datapoint_id>/ 
-		String topic = (String) message.getHeaders().get("mqtt_topic");
-		Datapoint d = Datapoint.from(topic, v);
+		final Datapoint d;
+		if (message.getPayload() instanceof Datapoint) {
+			d = (Datapoint) message.getPayload();
+		} else {
+			String sPayload = message.getPayload().toString();
+			Double v = Double.valueOf(sPayload);
+			// something like /sensor/<station_id>/datapoint/<datapoint_id>/ 
+			String topic = (String) message.getHeaders().get("mqtt_topic");
+			d = Datapoint.from(topic, v);
+		}
 		cepRT.sendEvent(d);
 	}
 }

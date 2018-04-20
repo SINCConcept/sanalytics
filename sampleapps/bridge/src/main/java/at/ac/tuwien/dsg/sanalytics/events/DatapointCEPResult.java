@@ -2,6 +2,7 @@ package at.ac.tuwien.dsg.sanalytics.events;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.data.annotation.Id;
@@ -21,8 +22,9 @@ public class DatapointCEPResult implements Serializable {
 		//empty
 	}
 
-	public DatapointCEPResult(Map<String, Object> data) {
-		this.data = data;
+	public DatapointCEPResult(Map<String, ?> data) {
+		this.data = new HashMap<>();
+		this.data.putAll(data);
 		this.time = new Date();
 	}
 	

@@ -15,17 +15,28 @@ import org.springframework.messaging.support.GenericMessage;
 import org.springframework.stereotype.Component;
 
 @Configuration
-@ConditionalOnMissingBean(name = "outboundInterceptor")
 public class LogInterceptor  {
 	
 	private final static Logger LOG = LoggerFactory.getLogger(LogInterceptor.class);
 	
 	@Bean
+	@ConditionalOnMissingBean(name = "outboundInterceptor")
 	public ChannelInterceptor outboundInterceptor() {
 		return new ChannelInterceptorAdapter() {
 			@Override
 			public void postSend(Message<?> message, MessageChannel channel, boolean sent) {
-				LOG.info("interceptor: " + message);
+				LOG.debug("interceptor: " + message);
+			}
+		};
+	}
+	
+	@Bean
+	@ConditionalOnMissingBean(name = "inboundInterceptor")
+	public ChannelInterceptor inboundInterceptor() {
+		return new ChannelInterceptorAdapter() {
+			@Override
+			public void postSend(Message<?> message, MessageChannel channel, boolean sent) {
+				LOG.debug("interceptor: " + message);
 			}
 		};
 	}

@@ -1,4 +1,4 @@
-package at.ac.tuwien.dsg.sanalytics.bridge.esper;
+package at.ac.tuwien.dsg.sanalytics.bridge.sql;
 
 import java.sql.SQLException;
 

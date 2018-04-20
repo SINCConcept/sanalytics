@@ -1,6 +1,10 @@
 package at.ac.tuwien.dsg.sanalytics.events;
 
 import java.io.Serializable;
+import java.lang.reflect.InvocationTargetException;
+import java.util.HashMap;
+
+import org.apache.commons.beanutils.BeanUtils;
 
 public class Datapoint implements Serializable {
 	private static final long serialVersionUID = 1L;
@@ -17,6 +21,12 @@ public class Datapoint implements Serializable {
 		this.station = station;
 		this.datapoint = datapoint;
 		this.value = value;
+	}
+
+	public Datapoint(HashMap<String, Object> m) {
+		this.station = (String) m.get("station");
+		this.datapoint = (String) m.get("datapoint");
+		this.value = ((Double) m.get("value")).doubleValue();
 	}
 
 	public String getStation() {

@@ -40,4 +40,16 @@ public class Command implements Serializable {
 				+ command + "]";
 	}
 
+	public static Command from(String payload) {
+		String[] parts = payload.split(";");
+		if (parts.length != 3) {
+			throw new IllegalArgumentException("cannot parse payload: " + payload);
+		}
+		Command d = new Command();
+		d.actuatorId = parts[0]; 
+		d.datapointId = parts[1];
+		d.command = parts[2];
+		return d;
+	}
+
 }

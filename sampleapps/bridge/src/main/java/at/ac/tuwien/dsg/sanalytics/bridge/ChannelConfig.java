@@ -11,14 +11,25 @@ import org.springframework.messaging.support.ChannelInterceptor;
 @Configuration
 public class ChannelConfig {
 
+	@Autowired
+	@Qualifier("inboundInterceptor")
+	private ChannelInterceptor inboundInterceptor;
+
+	@Autowired
+	@Qualifier("outboundInterceptor")
+	private ChannelInterceptor outboundInterceptor;
+	
 	/**
 	 * every bridge has one inboundChannel
 	 */
 	@Bean
 	public MessageChannel inboundChannel() {
-		return new DirectChannel();
+		DirectChannel channel = new DirectChannel();
+		channel.addInterceptor(inboundInterceptor);
+		return channel;
 	}
-
+	
+	
 	/**
 	 * every bridge has one outboundChannel
 	 */
@@ -28,10 +39,6 @@ public class ChannelConfig {
 		channel.addInterceptor(outboundInterceptor);
 		return channel;
 	}
-	
-	@Autowired
-	@Qualifier("outboundInterceptor")
-	private ChannelInterceptor outboundInterceptor;
 	
 	@Bean
 	public MessageChannel wireTapChannel() {
