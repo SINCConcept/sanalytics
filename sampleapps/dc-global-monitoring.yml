@@ -13,8 +13,8 @@ services:
     ports: 
       - "8083:8083"
       - "8086:8086" 
-    volumes: 
-      - /c/Users/cproinger/Documents/Docker/influx:/var/lib/influxdb
+#    volumes: 
+#      - /mydocker/influx:/var/lib/influxdb
     networks:
       - monitoring_overlay    
     environment:
@@ -25,7 +25,8 @@ services:
 
   grafana: 
     #image: grafana/grafana
-    image: monitoringartist/grafana-xxl:4.6
+    image: monitoringartist/grafana-xxl:4.3
+    #image: monitoringartist/grafana-xxl:5.0
     deploy: 
       resources: 
         limits: 
@@ -36,7 +37,8 @@ services:
     ports: 
       - "3000:3000"
     volumes: 
-      - /c/Users/cproinger/Documents/Docker/grafana:/var/lib/grafana
+      - /mydocker/grafana:/var/lib/grafana
+      - /mydocker/grafana-diagram:/var/lib/grafana/plugins/grafana-diagram
     networks: 
       - monitoring_overlay      
       
@@ -52,7 +54,7 @@ services:
     networks: 
       - monitoring_overlay
     environment:
-      - JAVA_OPTS=-server -Xmx80m -XX:MaxMetaspaceSize=64m -Dspring.profiles.active=sample        
+      - JAVA_OPTS=-server -Xmx80m -XX:MaxMetaspaceSize=64m -Dspring.profiles.active=sample -Djava.security.edg=file:/dev/./urandom         
     
 networks:
   app_overlay: 

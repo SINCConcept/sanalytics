@@ -19,11 +19,15 @@ subslices:
         image: cproinger/mongo-with-prom-exporter
         deploy:
           labels:
-            at.ac.tuwien.dsg.sanalytics.metricsport : "9100"
+            at.ac.tuwien.dsg.sanalytics.metricsport : "9001"
           resources: 
             limits: 
               memory: 200M
               cpus: "0.25"
+          restart_policy:
+            delay: 60s
+            max_attempts: 10
+            window: 10s
         ports:
           - "27017:27017"
         networks:
@@ -34,10 +38,15 @@ subslices:
         deploy: 
           labels: 
             at.ac.tuwien.dsg.sanalytics.metricsport : "15672"
+            at.ac.tuwien.dsg.sanalytics.metricspath : "/api/metrics"
           resources: 
             limits: 
               memory: 120M
               cpus: "0.25"
+          restart_policy:
+            delay: 60s
+            max_attempts: 10
+            window: 10s              
         ports: 
           - "5672:5672"
           - "15672:15672"      
@@ -56,12 +65,16 @@ subslices:
             limits: 
               memory: 180M
               cpus: "0.5"
+          restart_policy:
+            delay: 60s
+            max_attempts: 10
+            window: 10s              
         ports:
           - "8081:8080"
         networks:
           - app_overlay   
         environment: 
-          - JAVA_OPTS=-server -Xmx100m -XX:MaxMetaspaceSize=64m -Dspring.profiles.active=inbound-rabbitmq,forwarder,outbound-mongo -Dspring.rabbitmq.host=rabbitmq -Dspring.rabbitmq.username=guest -Dspring.rabbitmq.password=guest -Dspring.data.mongodb.uri=mongodb://mymongodb:27017/events
+          - JAVA_OPTS=-server -Xmx100m -XX:MaxMetaspaceSize=64m -Dspring.profiles.active=inbound-rabbitmq,forwarder,outbound-mongo-randomcount -Dspring.rabbitmq.host=rabbitmq -Dspring.rabbitmq.username=guest -Dspring.rabbitmq.password=guest -Dspring.data.mongodb.uri=mongodb://mymongodb:27017/events
     
     
     networks:
@@ -81,14 +94,18 @@ subslices:
           resources: 
             limits: 
               memory: 180M
-              cpus: "0.1"
+              cpus: "0.5"
+          restart_policy:
+            delay: 60s
+            max_attempts: 10
+            window: 10s              
         ports:
           - "8082:8080"
         networks:
           - app_overlay  
-          - cloudstack_app_overlay 
+          - slice1_cloud_app_overlay 
         environment: 
-          - JAVA_OPTS=-server -Xmx100m -XX:MaxMetaspaceSize=64m -Dspring.profiles.active=inbound-mqtt,esper-cep,outbound-rabbitmq -Dinbound-mqtt.brokerURL=tcp://nfvstack_mqtt:1883 -Dinbound-mqtt.subscriptions=sensor/+/randomcount -Dspring.rabbitmq.host=cloudstack_rabbitmq -Dspring.rabbitmq.username=guest -Dspring.rabbitmq.password=guest
+          - JAVA_OPTS=-server -Xmx100m -XX:MaxMetaspaceSize=64m -Dspring.profiles.active=inbound-mqtt,esper-cep-randomcount,outbound-rabbitmq -Dinbound-mqtt.brokerURL=tcp://nfv_mqtt:1883 -Dinbound-mqtt.subscriptions=sensor/+/randomcount -Dspring.rabbitmq.host=rabbitmq -Dspring.rabbitmq.username=guest -Dspring.rabbitmq.password=guest
         
         
       nfv_mqtt:
@@ -99,7 +116,11 @@ subslices:
           resources: 
             limits: 
               memory: 10M
-              cpus: "0.5"          
+              cpus: "0.5"
+          restart_policy:
+            delay: 60s
+            max_attempts: 10
+            window: 10s                        
         ports:
           - "1883:1883"
         networks:
@@ -107,7 +128,7 @@ subslices:
     
     networks:
       app_overlay:
-      cloudstack_app_overlay:
+      slice1_cloud_app_overlay:
         external: true    
         
   iot:
@@ -116,9 +137,16 @@ subslices:
       iot_mqtt:
         image: toke/mosquitto:release-1.4.10-2
         deploy: 
+          labels: 
+            at.ac.tuwien.dsg.sanalytics.active : "false"        
           resources: 
             limits: 
               memory: 10M
+              cpus: "0.25"
+          restart_policy:
+            delay: 60s
+            max_attempts: 10
+            window: 10s              
         ports:
           - "1884:1883"
         networks:
@@ -129,13 +157,20 @@ subslices:
           - iot_mqtt
         image: cproinger/sample-sensor
         deploy: 
+          labels: 
+            at.ac.tuwien.dsg.sanalytics.active : "false"
           resources: 
             limits: 
               memory: 128M
+              cpus: "0.5"
+          restart_policy:
+            delay: 60s
+            max_attempts: 10
+            window: 10s              
         networks:
           - iot_overlay
         environment: 
-          - JAVA_OPTS=-Xmx16m -Dspring.profiles.active=random -Dmqtt.brokerURL=tcp://iotstack_iot_mqtt:1883     
+          - JAVA_OPTS=-Xmx16m -Dspring.profiles.active=random -Dmqtt.brokerURL=tcp://iot_mqtt:1883 -Dsensor.randomCount.fixedRate=300
           
       iot2nfvBridge:
         depends_on:
@@ -148,13 +183,18 @@ subslices:
           resources: 
             limits: 
               memory: 128M
+              cpus: "0.5"              
+          restart_policy:
+            delay: 60s
+            max_attempts: 10
+            window: 10s              
         networks:
           - iot_overlay
-          - nfvstack_app_overlay
+          - slice1_nfv_app_overlay
         environment: 
-          - JAVA_OPTS=-Xmx100m -Dspring.profiles.active=inbound-mqtt,forwarder,outbound-mqtt -Dinbound-mqtt.brokerURL=tcp://iotstack_iot_mqtt:1883 -Doutbound-mqtt.brokerURL=tcp://nfvstack_nfv_mqtt:1883      
+          - JAVA_OPTS=-Xmx100m -Dspring.profiles.active=inbound-mqtt,forwarder,outbound-mqtt -Dinbound-mqtt.brokerURL=tcp://iot_mqtt:1883 -Doutbound-mqtt.brokerURL=tcp://nfv_mqtt:1883      
         
     networks:
       iot_overlay: 
-      nfvstack_app_overlay:
+      slice1_nfv_app_overlay:
         external: true 

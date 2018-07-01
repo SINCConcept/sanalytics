@@ -44,7 +44,7 @@ public class PlatformSetupController {
 		}
 	}
 
-	@RequestMapping(path = "/setup-platform.sh", method = RequestMethod.GET,
+	@RequestMapping(path = {"/setup-platform.sh", "/setup.sh"}, method = RequestMethod.GET,
 			produces = "text/plain")
 	public ResponseEntity<String> getSetupPlatformScript(HttpServletRequest req) {
 		StringBuilder sb = new StringBuilder();
@@ -92,6 +92,17 @@ public class PlatformSetupController {
 				+ "-web.console.libraries=/etc/prometheus/console_libraries "
 				+ "-web.console.templates=/etc/prometheus/consoles").append('\n');
 
+		String body = sb.toString();
+		return new ResponseEntity<String>(body, HttpStatus.OK);
+	}
+	
+	@RequestMapping(path = {"/teardown.sh"}, method = RequestMethod.GET,
+			produces = "text/plain")
+	public ResponseEntity<String> getTeardownPlatformScript(HttpServletRequest req) {
+		StringBuilder sb = new StringBuilder();
+		
+		sb.append("docker service rm prom_platform").append('\n');
+		sb.append("docker service rm cadvisor").append('\n');
 		String body = sb.toString();
 		return new ResponseEntity<String>(body, HttpStatus.OK);
 	}

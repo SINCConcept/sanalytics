@@ -19,6 +19,7 @@ public class DnsSdConfig {
 
 	private DnsQueryType type = DnsQueryType.A;
 	private Integer port;
+	private String metricsPath;
 	private String refreshIntervall;
 	private List<String> names;
 	

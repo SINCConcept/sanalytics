@@ -28,6 +28,8 @@ import at.ac.tuwien.dsg.sanalytics.generator.promconfig.RemoteReadWrite;
 import at.ac.tuwien.dsg.sanalytics.generator.sliceconfig.GlobalMonitoringConfiguration;
 
 public class SliceConfigGenerator {
+	private static final String PLATFORM_OVERLAY = "platform_overlay";
+
 	private static final String MONITORINGNET = "monitoringnet";
 
 	private static final String DOCKER_COMPOSE_VERSION = "3.4";
@@ -122,10 +124,9 @@ public class SliceConfigGenerator {
 			}
 			networks.put(MONITORINGNET, null);
 			if (StringUtils.isNotBlank(globalMonConf.getNetwork())) {
-				LinkedHashMap<String, Object> globalMonNet = new LinkedHashMap<>();
-				globalMonNet.put("external", true);
-				networks.put(globalMonConf.getNetwork(), globalMonNet);
+				networks.put(globalMonConf.getNetwork(), createExternalNetworkObject());
 			}
+			networks.put(PLATFORM_OVERLAY, createExternalNetworkObject());
 			
 			// dump the docker file
 			try (Writer writer = writerProvider.getWriter(subsliceName, "docker-compose.yml")) {
@@ -139,6 +140,12 @@ public class SliceConfigGenerator {
 			writer.flush();
 		}
 
+	}
+
+	private LinkedHashMap<String, Object> createExternalNetworkObject() {
+		LinkedHashMap<String, Object> globalMonNet = new LinkedHashMap<>();
+		globalMonNet.put("external", true);
+		return globalMonNet;
 	}
 
 	private GlobalMonitoringConfiguration extractGlobalMonitoringConfiguration(
@@ -237,6 +244,7 @@ public class SliceConfigGenerator {
 		if (!StringUtils.isBlank(globalMonConf.getNetwork())) {
 			networks.add(globalMonConf.getNetwork());
 		}
+		networks.add(PLATFORM_OVERLAY);
 		prometheusService.put("networks", networks);
 		
 		return prometheusService;

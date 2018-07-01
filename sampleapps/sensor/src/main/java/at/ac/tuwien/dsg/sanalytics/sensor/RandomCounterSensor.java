@@ -29,10 +29,14 @@ public class RandomCounterSensor {
 	private long count = 0;
 	private Random rand = new Random();
 	
-	@Scheduled(fixedRateString = "${sensor.randomCount.fixedRate:10000}")
+	@Scheduled(fixedDelayString = "${sensor.randomCount.fixedRate:10000}")
 	public void sendRandom() {
 		//one could CEP on big increases (many > 8 in a timeframe) for example
 		count+= rand.nextInt(10); 
+		if (System.currentTimeMillis() % 7 == 0) {
+			System.out.println("skipping send");
+			return;
+		}
 		System.out.println("sending count " + count);
 		gateway.sendToMqtt(count + "");
 	}
